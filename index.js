@@ -50,7 +50,7 @@ writeCharToScreen(' ', 0xff, 0);
 for (let i = 0; i <= 0xff; ++i) {
 	const command = i % 2 === 0
 		?	0x01
-		: 0x02;
+		: 0xfe;
 	writeCharToScreen('*', command, i);
 }
 
