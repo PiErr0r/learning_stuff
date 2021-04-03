@@ -16,6 +16,8 @@ class CPU {
       map[name] = i * 2;
       return map;
     }, {});
+
+    this.halted = false;
   }
 
   debug() {
@@ -23,6 +25,22 @@ class CPU {
       console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, '0')}`)
     });
     console.log();
+  }
+
+  viewMemoryAt(address) {
+    const nextEightBytes = Array.from({length: 8}, (_, i) => 
+      this.memory.getUint8(address + i)
+    ).map(v => `0x${v.toString(16).padStart(2, '0')}`);
+    console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextEightBytes.join(' ')}`);
+  }
+
+  viewRegisterValue(name) {
+    if (!name in this.registerMap) {
+      throw new Error(`viewRegisterValue: No register found with name: '${name}'`);
+    }
+
+    const value = this.getRegister(name);
+    console.log(`${name}: ${value.toString(16).padStart(4, '0')}`);
   }
 
   getRegister(name) {
@@ -57,14 +75,35 @@ class CPU {
 
   execute(instruction) {
     switch (instruction) {
-      case instructions.MOV_LIT_R1: { // move literal to r1
-        const value = this.fetch16();
-        this.setRegister('r1', value);
+      case instructions.END: {
+        this.halt();
         return;
       }
-      case instructions.MOV_LIT_R2: { // move literal to r2
+      case instructions.MOV_LIT_REG: { // move literal to register
         const value = this.fetch16();
-        this.setRegister('r2', value);
+        const r = (this.fetch() % this.registerNames.length) * 2;
+        this.registers.setUint16(r, value);
+        return;
+      }
+      case instructions.MOV_REG_REG: { // move register to register
+        const rFrom = (this.fetch() % this.registerNames.length) * 2;
+        const rTo = (this.fetch() % this.registerNames.length) * 2;
+        const value = this.registers.getUint16(rFrom);
+        this.registers.setUint16(rTo, value);
+        return;
+      }
+      case instructions.MOV_REG_MEM: { // move register to memory
+        const rFrom = (this.fetch() % this.registerNames.length) * 2;
+        const address = this.fetch16();
+        const value = this.registers.getUint16(rFrom);
+        this.memory.setUint16(address, value);
+        return;
+      }
+      case instructions.MOV_MEM_REG: { // move memory to register
+        const address = this.fetch16();
+        const rTo = (this.fetch() % this.registerNames.length) * 2;
+        const value = this.memory.getUint16(address);
+        this.registers.setUint16(rTo, value);
         return;
       }
       case instructions.ADD_REG_REG: { // add register to regiister
@@ -75,6 +114,18 @@ class CPU {
         this.setRegister('acc', rValue1 + rValue2);
         return;
       }
+      case instructions.JMP_NOT_EQ: { // jump if not equal
+        const value = this.fetch16();
+        const address = this.fetch16();
+        if (value !== this.getRegister('acc')) {
+          this.setRegister('ip', address);
+        }
+        return;
+      }
+      default: {
+        throw new Error(`execute: instruction 0x${instruction.toString(16).padStart('0', 2)} is not recognized`)
+        return;
+      }
     }
   }
 
@@ -83,6 +134,9 @@ class CPU {
     return this.execute(instruction);
   }
 
+  halt() {
+    this.halted = true;
+  }
 }
 
 module.exports = CPU;
