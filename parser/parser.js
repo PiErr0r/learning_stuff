@@ -28,7 +28,7 @@ class Parser {
 			isError: false,
 			error: null
 		}
-		console.log(typeof this.parserStateTransformerFn)
+
 		return this.parserStateTransformerFn(initialState);	
 	}
 
@@ -306,20 +306,18 @@ const between = (leftParser, rightParser) => contentParser => sequenceOf([
 const lazy = parserThunk => new Parser(parserState => {
 	const parser = parserThunk();
 	return parser.parserStateTransformerFn(parserState);
-})
+});
 
-
-const betweenSquareParen = between(str('['), str(']'));
-const commaSeparator = sepBy(str(','));
-
-const value = lazy(() => choice([
+module.exports = {
+	str,
+	letters,
 	digits,
-	arrayParser
-]));
-const arrayParser = betweenSquareParen(commaSeparator(value));
-
-const exampleString = '[1,[2,[3],4],5]';
-
-console.log(
-	arrayParser.run(exampleString)
-)
+	sequenceOf,
+	choice,
+	many,
+	many1,
+	sepBy,
+	sepBy1,
+	between,
+	lazy,
+};
