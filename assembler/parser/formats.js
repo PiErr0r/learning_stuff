@@ -30,6 +30,28 @@ const litReg = (mnemonic, type) => A.coroutine(function* () {
 	});
 });
 
+const regLit = (mnemonic, type) => A.coroutine(function* () {
+	yield upperLowerStr(mnemonic);
+	yield A.whitespace;
+
+	const r = yield register;
+
+	yield A.optionalWhitespace;
+	yield A.char(',');
+	yield A.optionalWhitespace;
+
+	const literal = yield A.choice([
+		hexLiteral,
+		squareBracketExpr
+	]);
+	yield A.optionalWhitespace;
+
+	return T.instruction({
+		instruction: type,
+		args: [r, literal]
+	});
+});
+
 const regReg = (mnemonic, type) => A.coroutine(function* () {
 	yield upperLowerStr(mnemonic);
 	yield A.whitespace;
@@ -212,6 +234,7 @@ const singleLit = (mnemonic, type) => A.coroutine(function* () {
 
 module.exports = {
 	litReg,
+	regLit,
 	regReg,
 	regMem,
 	memReg,

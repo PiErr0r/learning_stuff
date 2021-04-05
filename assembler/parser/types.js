@@ -3,6 +3,7 @@ const { asType } = require('./util');
 const register = asType('REGISTER');
 const hexLiteral = asType('HEX_LITERAL');
 const variable = asType('VARIABLE');
+const label = asType('LABEL');
 const address = asType('ADDRESS');
 
 const opAdd = asType('OP_ADD');
@@ -19,6 +20,7 @@ module.exports = {
 	register,
 	hexLiteral,
 	variable,
+	label,
 	address,
 	opAdd,
 	opSub,

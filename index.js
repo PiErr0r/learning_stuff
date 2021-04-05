@@ -46,14 +46,16 @@ const writeCharToScreen = (char, command, position) => {
 
 //"Hello world!".split('').forEach((c, i) => writeCharToScreen(c, i));
 
-writeCharToScreen(' ', 0xff, 0);
-for (let i = 0; i <= 0xff; ++i) {
-	const command = i % 2 === 0
-		?	0x01
-		: 0xfe;
-	writeCharToScreen('*', command, i);
-}
+//writeCharToScreen(' ', 0xff, 0);
+//for (let i = 0; i <= 0xff; ++i) {
+//	const command = i % 2 === 0
+//		?	0x01
+//		: 0xfe;
+//	writeCharToScreen('*', command, i);
+//}
 
-writeableBytes[i++] = instructions.HLT;
+[0x10,0x42,0x00,0x02,0x12,0x02,0x00,0x60,0x10,0x13,0x00,0x02,0x13,0x00,0x60,0x03,0x1c,0x02,0x03,0xff].forEach(x => {writeableBytes[i++] = x});
 
-cpu.run();
+//writeableBytes[i++] = instructions.HLT.opcode;
+
+cpu.run(true);

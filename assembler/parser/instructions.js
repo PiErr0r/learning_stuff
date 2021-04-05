@@ -1,6 +1,7 @@
 const A = require('arcsecond');
 const {
 	litReg,
+	regLit,
 	regReg,
 	regMem,
 	memReg,
@@ -30,6 +31,7 @@ const add = A.choice([
 const sub = A.choice([
 	litReg('sub', 'SUB_LIT_REG'),
 	regReg('sub', 'SUB_REG_REG'),
+	regLit('sub', 'SUB_REG_LIT'),
 ]);
 
 const mul = A.choice([
@@ -38,12 +40,12 @@ const mul = A.choice([
 ]);
 
 const lsf = A.choice([
-	litReg('lsf', 'LSF_LIT_REG'),
+	regLit('lsf', 'LSF_REG_LIT'),
 	regReg('lsf', 'LSF_REG_REG'),
 ]);
 
 const rsf = A.choice([
-	litReg('rsf', 'RSF_LIT_REG'),
+	regLit('rsf', 'RSF_REG_LIT'),
 	regReg('rsf', 'RSF_REG_REG'),
 ]);
 
