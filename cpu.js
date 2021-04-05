@@ -34,9 +34,7 @@ class CPU {
 
   viewMemoryAt(address, n = 8) {
     const nextNBytes = Array.from({length: n}, (_, i) => 
-      (address + i) < this.memory.byteLength ?
       this.memory.getUint8(address + i)
-      : 0
     ).map(v => `0x${v.toString(16).padStart(2, '0')}`);
     console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);
   }
@@ -534,11 +532,9 @@ class CPU {
     return this.execute(instruction);
   }
 
-  run(doDebug = false) {
+  run(doDebug = () => {}) {
     const halt = this.step();
-    if (doDebug) {
-      this.debug();
-    }
+    doDebug(halt);
     if (!halt) {
       setImmediate(() => this.run(doDebug));
     }

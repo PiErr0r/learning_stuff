@@ -18,7 +18,7 @@ const registerMap = {
 };
 
 const program = `start:
-	mov $0a, $0050
+	mov $0a, &0050
 loop:
 	mov &0050, acc
 	dec acc
@@ -26,10 +26,14 @@ loop:
 	inc r2
 	inc r2
 	inc r2
-	jne &00, &[!loop]
+	jne $00, &[!loop]
 end:
 	hlt
 `;
+
+const programxx =`mov $42, r1
+mov r1, r2
+add r1, r1` 
 
 const parsedOutput = parser.run(program);
 console.log(parsedOutput)
@@ -75,7 +79,7 @@ parsedOutput.result.forEach(instructionOrLabel => {
 	if (instructionOrLabel.type === 'LABEL') {
 		labels[instructionOrLabel.value] = currAddress;
 	} else {
-		const metadata = instructions[instruction.value.instructionOrLabel];
+		const metadata = instructions[instructionOrLabel.value.instruction];
 		currAddress += metadata.size;
 	}
 });
@@ -120,4 +124,4 @@ parsedOutput.result.forEach(instruction => {
 	}
 })
 
-console.log(machineCode.map(x => x.toString(16)).join(','));
+console.log(machineCode.map(x => '0x' + x.toString(16).padStart('0', 2)).join(','));
