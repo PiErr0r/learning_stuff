@@ -27,6 +27,11 @@ const hexLiteral = A.char('$')
 	.chain(() => mapJoin(A.many1(hexDigit)))
 	.map(T.hexLiteral);
 
+const address = A.char('&')
+	.chain(() => mapJoin(A.many1(hexDigit)))
+	.map(T.hexLiteral);
+
+
 const validIdentifier = mapJoin(A.sequenceOf([
 	A.regex(/^[A-Za-z_]/),
 	A.regex(/^[A-Za-z_]+/).map(x => x === null ? '' : x),
@@ -47,8 +52,8 @@ const peek = A.lookAhead(A.regex(/^./));
 module.exports = {
 	upperLowerStr,
 	register,
-	hexDigit,
 	hexLiteral,
+	address,
 	validIdentifier,
 	variable,
 	operator,
