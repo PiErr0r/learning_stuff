@@ -43,3 +43,17 @@ this_should_run_instead:
 end:
 	hlt
 `
+
+const program = `
+constant code_constant = $C0DE
+
++data8 bytes = { $01, $02, $03, $04 }
+data16 words = { $0506, $0708, $0809, $0A0B }
+
+code:
+	mov [!code_constant], &1234
+
+end:
+	hlt
+
+`

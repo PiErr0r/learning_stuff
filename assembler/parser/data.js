@@ -6,8 +6,6 @@ const {
 } = require('./common');
 const T = require('./types');
 
-const optionalWhitespaceSurrounded = A.between(A.optionalWhitespace)(A.optionalWhitespace);
-
 const dataParser = size => A.coroutine(function* () {
 	const isExport = Boolean(yield A.possibly(A.char('+')));
 	yield A.str(`data${size}`);

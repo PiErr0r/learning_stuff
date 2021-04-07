@@ -7,6 +7,8 @@ const label = asType('LABEL');
 const address = asType('ADDRESS');
 const data = asType('DATA');
 const constant = asType('CONSTANT');
+const structure = asType('STRUCTURE');
+const interpret_as = asType('INTERPRET_AS');
 
 const opAdd = asType('OP_ADD');
 const opSub = asType('OP_SUB');
@@ -26,6 +28,8 @@ module.exports = {
 	address,
 	data,
 	constant,
+	structure,
+	interpret_as,
 	opAdd,
 	opSub,
 	opMul,

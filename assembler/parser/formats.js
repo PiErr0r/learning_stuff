@@ -4,12 +4,12 @@ const {
 	hexLiteral,
 	address,
 	register,
-	upperLowerStr,
+	upperOrLowerStr,
 } = require('./common');
 const { squareBracketExpr } = require('./expressions');
 
 const litReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const literal = yield A.choice([
@@ -31,7 +31,7 @@ const litReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const regLit = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const r = yield register;
@@ -53,7 +53,7 @@ const regLit = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const regReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const r1 = yield register
@@ -73,7 +73,7 @@ const regReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const regMem = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const r = yield register
@@ -96,7 +96,7 @@ const regMem = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const memReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const addr = yield A.choice([
@@ -119,7 +119,7 @@ const memReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const litMem = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const literal = yield A.choice([
@@ -145,7 +145,7 @@ const litMem = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const regPtrReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const r1 = yield A.char('&').chain(() => register);
@@ -165,7 +165,7 @@ const regPtrReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const litOffReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const literal = yield A.choice([
@@ -193,7 +193,7 @@ const litOffReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const noArg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.optionalWhitespace;
 
 	return T.instruction({
@@ -203,7 +203,7 @@ const noArg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const singleReg = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const r = yield register;
@@ -216,7 +216,7 @@ const singleReg = (mnemonic, type) => A.coroutine(function* () {
 });
 
 const singleLit = (mnemonic, type) => A.coroutine(function* () {
-	yield upperLowerStr(mnemonic);
+	yield upperOrLowerStr(mnemonic);
 	yield A.whitespace;
 
 	const literal = yield A.choice([
