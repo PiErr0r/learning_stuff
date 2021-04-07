@@ -1,19 +1,13 @@
 const createMemory = require('./createMemory');
 const instructions = require('./instructions');
+const registers = require('./registers');
 
 class CPU {
   constructor(memory) {
     this.memory = memory;
 
-    this.registerNames = [
-      'ip', 'acc', // instruction pointer, accumulator
-      'r1', 'r2', 'r3', 'r4', // general purpose registers
-      'r5', 'r6', 'r7', 'r8',
-      'sp', 'fp'
-    ];
-
-    this.registers = createMemory(this.registerNames.length * 2); // every reg is 2 byte wide
-    this.registerMap = this.registerNames.reduce((map, name, i) => {
+    this.registers = createMemory(registers.length * 2); // every reg is 2 byte wide
+    this.registerMap = registers.reduce((map, name, i) => {
       map[name] = i * 2;
       return map;
     }, {});
@@ -26,7 +20,7 @@ class CPU {
   }
 
   debug() {
-    this.registerNames.forEach(name => {
+    registers.forEach(name => {
       console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, '0')}`)
     });
     console.log();
@@ -79,7 +73,7 @@ class CPU {
   }
 
   fetchRegisterIndex() {
-    return (this.fetch() % this.registerNames.length) * 2;
+    return (this.fetch() % registers.length) * 2;
   }
 
   push(value) {
