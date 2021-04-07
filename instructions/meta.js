@@ -38,6 +38,20 @@ const meta = [
 		mnemonic: 'nop',
 	},
 	{
+		instruction: 'INT',
+		opcode:0xFD,
+		type: instructionTypes.singleLit,
+		size: instructionTypeSizes.singleLit,
+		mnemonic: 'int'
+	},
+	{
+		instruction: 'RET_INT',
+		opcode:0xFC,
+		type: instructionTypes.noArg,
+		size: instructionTypeSizes.noArg,
+		mnemonic: 'rti'
+	},
+	{
 		instruction: 'HLT',
 		opcode:0xFF,
 		type: instructionTypes.noArg,

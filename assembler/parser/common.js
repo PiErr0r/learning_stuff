@@ -1,5 +1,6 @@
 const A = require('arcsecond');
 const T = require('./types');
+const R = require('../../registers');
 const { mapJoin } = require('./util');
 
 const upperLowerStr = s => A.choice([
@@ -7,20 +8,9 @@ const upperLowerStr = s => A.choice([
 	A.str(s.toUpperCase()),
 ]);
 
-const register = A.choice([
-	upperLowerStr('r1'),
-	upperLowerStr('r2'),
-	upperLowerStr('r3'),
-	upperLowerStr('r4'),
-	upperLowerStr('r5'),
-	upperLowerStr('r6'),
-	upperLowerStr('r7'),
-	upperLowerStr('r8'),
-	upperLowerStr('sp'),
-	upperLowerStr('fp'),
-	upperLowerStr('ip'),
-	upperLowerStr('acc'),
-]).map(T.register);
+const register = A.choice(
+	R.map(r => upperLowerStr(r))
+).map(T.register);
 
 const hexDigit = A.regex(/^[0-9a-fA-F]/);
 const hexLiteral = A.char('$')
@@ -33,7 +23,7 @@ const address = A.char('&')
 
 const validIdentifier = mapJoin(A.sequenceOf([
 	A.regex(/^[A-Za-z_]/),
-	A.regex(/^[A-Za-z_]+/).map(x => x === null ? '' : x),
+	A.regex(/^[A-Za-z0-9_]+/).map(x => x === null ? '' : x),
 ]));
 
 const variable = A.char('!')
@@ -41,11 +31,12 @@ const variable = A.char('!')
 	.map(T.variable);
 
 const label = A.sequenceOf([
+	A.optionalWhitespace,
 	validIdentifier,
 	A.char(':'),
 	A.optionalWhitespace
 ])
-.map(([labelName]) => labelName)
+.map(([_, labelName]) => labelName)
 .map(T.label);
 
 const operator = A.choice([

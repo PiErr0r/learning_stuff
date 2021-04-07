@@ -43,25 +43,10 @@ MM.map(memoryBankDevice, 0, bankSize);
 const regularMemory = createMemory(0xff00);
 MM.map(regularMemory, bankSize, 0xffff, true);
 
-console.log('write 1 to address 0');
-MM.setUint16(0, 1);
-console.log('reading value @ address 0:', MM.getUint16(0));
+const writeableBytes = new Uint8Array(regularMemory.buffer);
+let i = 0;
+[0x10,0x0,0x1,0x2,0x10,0x0,0x2,0x3,0x17,0x0,0x3,0xfd,0x0,0x3,0x10,0x0,0x1,0x4,0x26,0x4,0x0,0x3,0x34,0x4,0x2f,0xd,0x1,0x11,0x1,0xd,0xfd,0x0,0x3,0x10,0x0,0x5,0x6,0xff].forEach(x => {
+	writeableBytes[i++] = x;
+})
 
-console.log('\n:::switching memory bank (0 -> 1)');
-cpu.setRegister('mb', 1);
-console.log('reading value @ address 0:', MM.getUint16(0));
-
-console.log('write 42 to address 0');
-MM.setUint16(0, 42);
-
-console.log('\n:::switching memory bank (1 -> 2)');
-cpu.setRegister('mb', 2);
-console.log('reading value @ address 0:', MM.getUint16(0));
-
-console.log('\n:::switching memory bank (2 -> 1)');
-cpu.setRegister('mb', 1);
-console.log('reading value @ address 0:', MM.getUint16(0));
-
-console.log('\n:::switching memory bank (1 -> 0)');
-cpu.setRegister('mb', 0);
-console.log('reading value @ address 0:', MM.getUint16(0));
+cpu.run((halt) => { cpu.debug(); cpu.viewMemoryAt(cpu.getRegister('ip')) });

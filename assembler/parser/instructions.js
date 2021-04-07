@@ -111,6 +111,8 @@ const cal = A.choice([
 ]);
 
 const ret = noArg('ret', 'RET');
+const int = singleLit('int', 'INT');
+const rti = noArg('rti', 'RET_INT');
 const hlt = noArg('hlt', 'HLT');
 
 module.exports = A.choice([
@@ -136,5 +138,7 @@ module.exports = A.choice([
 	pop,
 	cal,
 	ret,
+	int,
+	rti,
 	hlt,
 ]);

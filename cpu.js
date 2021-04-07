@@ -3,7 +3,7 @@ const instructions = require('./instructions');
 const registers = require('./registers');
 
 class CPU {
-  constructor(memory) {
+  constructor(memory, interruptVectorAddress = 0x1000) {
     this.memory = memory;
 
     this.registers = createMemory(registers.length * 2); // every reg is 2 byte wide
@@ -12,9 +12,13 @@ class CPU {
       return map;
     }, {});
 
+    this.interruptVectorAddress = interruptVectorAddress;
+    this.isInInterruptHandler = false;
+    this.setRegister('im', 0xffff)
+
     this.halted = false;
-    this.setRegister('sp', 0xFFFF - 1);
-    this.setRegister('fp', 0xFFFF - 1);
+    this.setRegister('sp', 0xffff - 1);
+    this.setRegister('fp', 0xffff - 1);
 
     this.stackFrameSize = 0;
   }
@@ -118,9 +122,41 @@ class CPU {
     this.setRegister('fp', framePointerAddress + stackFrameSize);
   }
 
+  handleInterrupt(value) {
+    const interruptVectorIndex = value % 0xf;
+    const isUnmasked = Boolean((1 << interruptVectorIndex) & this.getRegister('im'));
+    if (!isUnmasked) {
+      return;
+    }
+
+    const addressPointer = this.interruptVectorAddress + interruptVectorIndex * 2;
+    const address = this.memory.getUint16(addressPointer);
+
+    if (!this.isInInterruptHandler) {
+      this.push(0); // no arguments
+      this.pushState();
+    }
+
+    this.isInInterruptHandler = true;
+    this.setRegister('ip', address);
+  }
+
   execute(instruction) {
     switch (instruction) {
+      /***********************
+       * system instructions *
+       **********************/
       case instructions.NOP.opcode: {
+        return true;
+      }
+      case instructions.RET_INT.opcode: {
+        this.isInInterruptHandler = false;
+        this.popState();
+        return;
+      }
+      case instructions.INT.opcode: {
+        const interruptValue = this.fetch16();
+        this.handleInterrupt(interruptValue);
         return;
       }
       case instructions.HLT.opcode: {
