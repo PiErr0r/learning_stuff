@@ -47,6 +47,8 @@ const operator = A.choice([
 
 const peek = A.lookAhead(A.regex(/^./));
 
+const commaSeparated = A.sepBy(optionalWhitespaceSurrounded(A.char(',')));
+
 module.exports = {
 	upperLowerStr,
 	register,
@@ -57,4 +59,5 @@ module.exports = {
 	label,
 	operator,
 	peek,
+	commaSeparated,
 }

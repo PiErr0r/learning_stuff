@@ -5,6 +5,8 @@ const hexLiteral = asType('HEX_LITERAL');
 const variable = asType('VARIABLE');
 const label = asType('LABEL');
 const address = asType('ADDRESS');
+const data = asType('DATA');
+const constant = asType('CONSTANT');
 
 const opAdd = asType('OP_ADD');
 const opSub = asType('OP_SUB');
@@ -22,6 +24,8 @@ module.exports = {
 	variable,
 	label,
 	address,
+	data,
+	constant,
 	opAdd,
 	opSub,
 	opMul,

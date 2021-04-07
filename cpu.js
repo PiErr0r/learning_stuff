@@ -31,7 +31,7 @@ class CPU {
   }
 
   viewMemoryAt(address, n = 8) {
-    const nextNBytes = Array.from({length: n}, (_, i) => 
+    const nextNBytes = Array.from({length: n}, (_, i) =>
       this.memory.getUint8(address + i)
     ).map(v => `0x${v.toString(16).padStart(2, '0')}`);
     console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);

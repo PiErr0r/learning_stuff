@@ -6,44 +6,31 @@ const { instructionTypes: I } = require('../instructions/meta');
 const registerMap = registerNames.reduce((map, r, i) => Object.assign(map, { [r]: i }), {});
 
 const program = `
-before_interrupt:
-	mov $01, r1
-	mov $02, r2
-	psh $0003
+constant code_constant = $C0DE
 
-call_interrupt:
-	int $03
++data8 bytes = { $01, $02, $03, $04 }
+data16 words = { $0506, $0708, $0809, $0A0B }
 
-mask_interrupt_4:
-	mov $01, r3
-	lsf r3, $03
-	not r3
-	and im, acc
-	mov acc, im
-
-call_interrupt_again:
-	int $03
-
-this_should_run_instead:
-	mov $05, r5
+code:
+	mov [!code_constant], &1234
 
 end:
 	hlt
-`
+`.trim();
 
 const parsedOutput = parser.run(program);
 console.log(parsedOutput)
 const machineCode = [];
-const labels = {};
+const symbolicNames = {};
 let currAddress = 0;
 
 const encodeLitOrMem = lit => {
 	let hexVal;
 	if (lit.type === 'VARIABLE') {
-		if (!(lit.value in labels)) {
+		if (!(lit.value in symbolicNames)) {
 			throw new Error(`label ${lit.value} wasn't resolved`);
 		}
-		hexVal = labels[lit.value];
+		hexVal = symbolicNames[lit.value];
 	} else {
 		hexVal = parseInt(lit.value, 16);
 	}
@@ -55,10 +42,10 @@ const encodeLitOrMem = lit => {
 const encodeLit8 = lit => {
 	let hexVal;
 	if (lit.type === 'VARIABLE') {
-		if (!(lit.value in labels)) {
+		if (!(lit.value in symbolicNames)) {
 			throw new Error(`label ${lit.value} wasn't resolved`);
 		}
-		hexVal = labels[lit.value];
+		hexVal = symbolicNames[lit.value];
 	} else {
 		hexVal = parseInt(lit.value, 16);
 	}
@@ -71,52 +58,91 @@ const encodeReg = reg => {
 	machineCode.push(mappedReg);
 }
 
-parsedOutput.result.forEach(instructionOrLabel => {
-	if (instructionOrLabel.type === 'LABEL') {
-		labels[instructionOrLabel.value] = currAddress;
-	} else {
-		const metadata = instructions[instructionOrLabel.value.instruction];
-		currAddress += metadata.size;
+const encodeData8 = node => {
+	for (let byte of node.value.values) {
+		const parsed = parseInt(byte.value, 16);
+		machineCode.push(parsed & 0xff);
+	}
+}
+
+const encodeData16 = node => {
+	for (let byte of node.value.values) {
+		const parsed = parseInt(byte.value, 16);
+		machineCode.push((parsed & 0xff00) >> 8);
+		machineCode.push(parsed & 0xff);
+	}
+}
+
+parsedOutput.result.forEach(node => {
+	switch (node.type) {
+		case 'LABEL':
+			symbolicNames[node.value] = currAddress;
+			break;
+		case 'DATA': {
+			symbolicNames[node.value.name] = currAddress;
+			const sizeOfEachValueInBytes = node.value.size === 16 ? 2 : 1;
+			const totalSizeOfValuesInBytes = node.value.values.length * sizeOfEachValueInBytes;
+			currAddress += totalSizeOfValuesInBytes;
+			break;
+		}
+		case 'CONSTANT': {
+			symbolicNames[node.value.name] = parseInt(node.value.value.value, 16) & 0xffff;
+			break;
+		}
+		default:
+			const metadata = instructions[node.value.instruction];
+			currAddress += metadata.size;
+			break;
 	}
 });
 
-parsedOutput.result.forEach(instruction => {
-	if (instruction.type !== 'INSTRUCTION') {
+parsedOutput.result.forEach(node => {
+	if (node.type === 'LABEL' || node.type === 'CONSTANT') {
 		return;
 	}
-	const metadata = instructions[instruction.value.instruction];
+
+	if (node.type === 'DATA') {
+		if (node.value.size === 8) {
+			encodeData8(node);
+		} else {
+			encodeData16(node);
+		}
+		return;
+	}
+
+	const metadata = instructions[node.value.instruction];
 	machineCode.push(metadata.opcode);
 
 	if ([I.litReg, I.memReg].includes(metadata.type)) {
-		encodeLitOrMem(instruction.value.args[0]);
-		encodeReg(instruction.value.args[1]);
+		encodeLitOrMem(node.value.args[0]);
+		encodeReg(node.value.args[1]);
 	}
 	if ([I.regLit, I.regMem].includes(metadata.type)) {
-		encodeReg(instruction.value.args[0]);	
-		encodeLitOrMem(instruction.value.args[1]);
+		encodeReg(node.value.args[0]);	
+		encodeLitOrMem(node.value.args[1]);
 	}
 	if (I.regLit8 === metadata.type) {
-		encodeReg(instruction.value.args[0]);	
-		encodeLit8(instruction.value.args[1]);	
+		encodeReg(node.value.args[0]);	
+		encodeLit8(node.value.args[1]);	
 	}
 	if ([I.regReg, I.regPtrReg].includes(metadata.type)) {
-		encodeReg(instruction.value.args[0]);	
-		encodeReg(instruction.value.args[1]);	
+		encodeReg(node.value.args[0]);	
+		encodeReg(node.value.args[1]);	
 	}
 	if (I.litMem === metadata.type) {
-		encodeLitOrMem(instruction.value.args[0]);
-		encodeLitOrMem(instruction.value.args[1]);	
+		encodeLitOrMem(node.value.args[0]);
+		encodeLitOrMem(node.value.args[1]);	
 	}
 	if (I.litOffReg === metadata.type) {
-		encodeLitOrMem(instruction.value.args[0]);
-		encodeReg(instruction.value.args[1]);	
-		encodeReg(instruction.value.args[2]);	
+		encodeLitOrMem(node.value.args[0]);
+		encodeReg(node.value.args[1]);	
+		encodeReg(node.value.args[2]);	
 	}
 	if (I.singleReg === metadata.type) {
-		encodeReg(instruction.value.args[0]);	
+		encodeReg(node.value.args[0]);	
 	}
 	if (I.singleLit === metadata.type) {
-		encodeLitOrMem(instruction.value.args[0]);
+		encodeLitOrMem(node.value.args[0]);
 	}
 })
 
