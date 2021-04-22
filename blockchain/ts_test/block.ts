@@ -8,8 +8,8 @@ type Data = {
 }
 
 class Block {
+	readonly debug: boolean = true
 	data: Data
-	debug: boolean = true
 	index: number = 0
 	ts: string = String(new Date())
 	nonce: number

@@ -1,0 +1,21 @@
+{
+  "name": "g_challenge",
+  "version": "1.0.0",
+  "description": "Programming challenges from /g/ board on 4chan",
+  "main": "index.js",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.41"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prestart": "rm *.js",
+    "start": "tsc",
+    "poststart": "mv *.js index.js; node ."
+  },
+  "author": "PiErr0r",
+  "license": "ISC"
+}
