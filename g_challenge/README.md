@@ -5,6 +5,7 @@ In `package.json` there are 3 scripts:
   - `prestart`
   - `start`
   - `poststart`
+
 which will run in that order when `npm start -- filename.ts` is run
 
 **prestart** removes all old .js files
