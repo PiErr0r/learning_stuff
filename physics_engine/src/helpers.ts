@@ -1,4 +1,4 @@
-// helpers
+// condition functions
 export const eqFn:	ConditionFn = (a, b) => a === b;
 export const leqFn:	ConditionFn = (a, b) => a <= b;
 export const geqFn:	ConditionFn = (a, b) => a >= b;
@@ -13,3 +13,6 @@ export const divFn:AlgFn = (a, b) => a / b;
 
 // sort points in clockwise direction
 export const clockWise:SortPointsFn = (a, b) => ( Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x));
+
+// rgn
+export const newRand:(n:number) => number = (n) => Math.floor(Math.random() * n);

@@ -41,10 +41,15 @@ class Vector implements IVector {
 	}
 	add(A: Vector): Vector { return this.vectorAlg(A, addFn); }
 	sub(A: Vector): Vector { return this.vectorAlg(A, subFn);	}
-	mul(a: number): Vector { return this.vectorAlg(a, mulFn); }
-	div(a: number): Vector { return this.vectorAlg(a, divFn); }
+	mul(A: Vector|number): Vector { return this.vectorAlg(A, mulFn); }
 	addScaled(A:Vector, s:number) {
 		return this.add(Vector.mul(A, s));
+	}
+	div(A: number): Vector { 
+		if (A === 0) {
+			throw new Error("Division by zero");
+		}
+		return this.vectorAlg(A, divFn);
 	}
 
 	vectorBool(A: Vector, boolFn: ConditionFn) {
@@ -111,10 +116,15 @@ class Vector implements IVector {
 	}
 	static add(A: Vector, B: Vector): Vector { return Vector.vectorAlg(A, B, addFn); }
 	static sub(A: Vector, B: Vector): Vector { return Vector.vectorAlg(A, B, subFn); }
-	static mul(A: Vector, B:number): Vector { return Vector.vectorAlg(A, B, mulFn); }
-	static div(A: Vector, B:number): Vector { return Vector.vectorAlg(A, B, divFn); }
+	static mul(A: Vector, B: Vector|number): Vector { return Vector.vectorAlg(A, B, mulFn); }
 	static addScaled(A:Vector, B:Vector, s:number) {
 		return Vector.add(A, Vector.mul(B, s));
+	}
+	static div(A: Vector, B: number): Vector { 
+		if (B === 0) {
+			throw new Error("Division by zero");
+		}
+		return Vector.vectorAlg(A, B, divFn); 
 	}
 
 	static vectorBool(A: Vector, B:Vector, boolFn: ConditionFn) {

@@ -19,3 +19,9 @@ interface IVector {
 	z:number;
 	h:number; // homogenous coordinate
 }
+
+interface IParticle {
+	position: Vector,
+	velocity: Vector,
+	acceleration: Vector
+}
