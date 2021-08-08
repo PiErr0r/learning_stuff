@@ -5,7 +5,7 @@ Literature: Game Physics Engine Development by Ian Millington
 ## TODO
 
 - [x] chapters 1-4
-- [x] test basic forces
+- [x] test basic forces (`__index20210807.ts`)
 - [x] chapters 5-6: general forces and springs
 - [ ] test force generators
 - [ ] chapters 7-8: collision and overview
