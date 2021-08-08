@@ -1,5 +1,5 @@
-import { addFn, subFn, mulFn, divFn } from "./helpers";
-import { eqFn, leqFn, geqFn, ltFn, gtFn } from "./helpers"
+import { addFn, subFn, mulFn, divFn } from "Lib/helpers";
+import { eqFn, leqFn, geqFn, ltFn, gtFn } from "Lib/helpers"
 
 type param = 'x'|'y'|'z';
 const params:param[] = ['x', 'y', 'z'];
@@ -17,6 +17,10 @@ class Vector implements IVector {
 
 	copy(): Vector {
 		return new Vector(this.x, this.y, this.z);
+	}
+
+	clear():void {
+		params.forEach((p:param) => this[p] = 0);
 	}
 
 	log(): void {

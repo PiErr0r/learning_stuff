@@ -1,4 +1,4 @@
-import { addFn, subFn } from "./helpers";
+import { addFn, subFn } from "Lib/helpers";
 
 class Point implements IPoint {
 	x: number;

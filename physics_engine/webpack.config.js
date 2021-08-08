@@ -31,7 +31,15 @@ module.exports = env => ({
     }),
   ],
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+  },
+  resolve: {
+    extensions: [ '.tsx', '.ts', '.js', '.json' ],
+    alias: {
+      Canvas: path.resolve(__dirname, "src/canvas/"),
+      Geometry: path.resolve(__dirname, "src/geometry/"),
+      Lib: path.resolve(__dirname, "src/lib"),
+      Particle: path.resolve(__dirname, "src/particle/"),
+    }
   },
   output: {
     filename: 'bundle.js',

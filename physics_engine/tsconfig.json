@@ -13,6 +13,13 @@
     "types": ["node"], 
     "esModuleInterop": true, 
     "skipLibCheck": true, 
-    "forceConsistentCasingInFileNames": true  
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "Canvas/*": ["src/canvas/*"],
+      "Geometry/*": ["src/geometry/*"],
+      "Lib/*": ["src/lib/*"],
+      "Particle/*": ["src/particle/*"]
+    }
   }
 }
