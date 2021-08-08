@@ -27,6 +27,6 @@ interface IParticle {
 	acceleration: Vector
 }
 
-interface IParticleForceGenerator {
+interface IForceGenerator {
 	updateForce: (p:Particle, duration:number) => void;
 }

@@ -1,6 +1,6 @@
 import Particle from "./Particle";
 
-class ParticleDrag implements IParticleForceGenerator {
+class FGDrag implements IForceGenerator {
 	k1: number = 0; // coeff velocity drag
 	k2: number = 0; // coeff velocity drag squared
 	constructor(k1?:number, k2?:number) {
@@ -18,4 +18,4 @@ class ParticleDrag implements IParticleForceGenerator {
 	}
 }
 
-export default ParticleDrag;
+export default FGDrag;

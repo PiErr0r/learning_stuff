@@ -1,7 +1,7 @@
 import Vector from "Geometry/Vector";
 import Particle from "./Particle";
 
-class ParticleGravity implements IParticleForceGenerator {
+class FGGravity implements IForceGenerator {
 	gravity: Vector = new Vector(0, -10, 0);
 	constructor(g?:Vector) {
 		if (g !== undefined) {
@@ -15,4 +15,4 @@ class ParticleGravity implements IParticleForceGenerator {
 	}
 }
 
-export default ParticleGravity;
+export default FGGravity;
