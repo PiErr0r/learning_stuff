@@ -2,18 +2,18 @@ import Particle from "./Particle";
 
 interface ParticleForceRegistration {
 	particle: Particle;
-	fg: IParticleForceGenerator;
+	fg: IForceGenerator;
 }
 type Registry = Array<ParticleForceRegistration>;
 
 class ParticleForceRegistry {
 	registrations: Registry = [];
 	
-	add(particle: Particle, fg: IParticleForceGenerator):void {
+	add(particle: Particle, fg: IForceGenerator):void {
 		this.registrations.push({ particle, fg });
 	}
 
-	remove(particle: Particle, fg: IParticleForceGenerator):void {
+	remove(particle: Particle, fg: IForceGenerator):void {
 		let toRemove = -1;
 		for (let i = 0; i < this.registrations.length; ++i) {
 			if (particle === this.registrations[i].particle && 
