@@ -9,9 +9,10 @@ interface IPoint {
 	y: number
 }
 
-interface PointOpts {
+interface DrawOpts {
 	fillStyle?: string;
 	radius?: number;
+	drawPoints?: boolean;
 }
 
 interface IVector {

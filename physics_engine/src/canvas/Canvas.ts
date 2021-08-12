@@ -29,12 +29,12 @@ class Canvas {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
-	getPointFillStyle():string {
+	getFillStyle():string {
 		return this.POINT_OPTS[this.theme === "dark" ? "fillStyleDark" : "fillStyleLight"];
 	}
 
-	drawPoint(pt: IPoint, opts: PointOpts = {}) {
-		const fillStyle:string = opts.fillStyle === undefined ? this.getPointFillStyle() : opts.fillStyle;
+	drawPoint(pt: IPoint, opts: DrawOpts = {}):void {
+		const fillStyle:string = opts.fillStyle === undefined ? this.getFillStyle() : opts.fillStyle;
 		const radius:number = opts.radius === undefined ? this.POINT_OPTS.radius : opts.radius;
 		const { x, y } = pt;
 	  this.ctx.beginPath();
@@ -53,6 +53,23 @@ class Canvas {
 
 	drawLines() {
 
+	}
+
+	drawRect(botL: IPoint, topR: IPoint, opts: DrawOpts = {}): void {
+		const fillStyle = opts.fillStyle === undefined ? this.getFillStyle() : opts.fillStyle;
+		const drawPoints = opts.drawPoints === undefined ? false : opts.drawPoints;
+		this.ctx.fillStyle = fillStyle;
+		this.ctx.beginPath();
+		this.ctx.moveTo(botL.x, this.canvas.height - botL.y);
+		if (drawPoints) this.drawPoint({ x: botL.x, y: botL.y}, opts);
+		this.ctx.lineTo(topR.x, this.canvas.height - botL.y);
+		if (drawPoints) this.drawPoint({ x: topR.x, y: botL.y}, opts);
+		this.ctx.lineTo(topR.x, this.canvas.height - topR.y);
+		if (drawPoints) this.drawPoint({ x: topR.x, y: topR.y}, opts);
+		this.ctx.lineTo(botL.x, this.canvas.height - topR.y);
+		if (drawPoints) this.drawPoint({ x: botL.x, y: topR.y}, opts);
+		this.ctx.closePath();
+		this.ctx.fill();
 	}
 }
 
