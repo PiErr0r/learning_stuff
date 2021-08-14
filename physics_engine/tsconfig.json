@@ -17,8 +17,11 @@
     "baseUrl": "./",
     "paths": {
       "Canvas/*": ["src/canvas/*"],
+      "Contact/*": ["src/contact/*"],
+      "FGs/*": ["src/FGs/*"],
       "Geometry/*": ["src/geometry/*"],
       "Lib/*": ["src/lib/*"],
+      "Link/*": ["src/link"],
       "Particle/*": ["src/particle/*"]
     }
   }

@@ -1,7 +1,7 @@
 /*
-import Canvas from "./Canvas";
-import Particle from "./Particle";
-import Vector from "./Vector";
+import Canvas from "Canvas/Canvas";
+import Particle from "Particle/Particle";
+import Vector from "Geometry/Vector";
 
 const t = 1000/150;
 let intervalPtr1: null|ReturnType<typeof setInterval> = null;

@@ -36,8 +36,11 @@ module.exports = env => ({
     extensions: [ '.tsx', '.ts', '.js', '.json' ],
     alias: {
       Canvas: path.resolve(__dirname, "src/canvas/"),
+      Contact: path.resolve(__dirname, "src/contact/"),
+      FGs: path.resolve(__dirname, "src/FGs"),
       Geometry: path.resolve(__dirname, "src/geometry/"),
       Lib: path.resolve(__dirname, "src/lib"),
+      Link: path.resolve(__dirname, "src/link"),
       Particle: path.resolve(__dirname, "src/particle/"),
     }
   },

@@ -18,3 +18,20 @@ window.onload = () => {
 }
 
 const someFn = (canvas:Canvas) => { intervalPtr !== null ? clearInterval(intervalPtr) : {G, Particle} };
+
+
+/* GAME EXAMPLE
+
+void loop() {
+	while (1) {
+		// Prepare the objects for this frame.
+		world.startFrame();
+		// Calls to other parts of the game code.
+		runGraphicsUpdate();
+		updateCharacters();
+		// Update the physics.
+		world.runPhysics();
+		if (gameOver) break;
+	}
+}
+*/

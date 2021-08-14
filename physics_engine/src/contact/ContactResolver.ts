@@ -3,7 +3,7 @@ import ParticleContact from "Particle/ParticleContact";
 class ContactResolver {
 	protected iterations: number;
 	protected iterationsUsed: number = 0;
-	constructor (iterations: number) {
+	constructor (iterations: number = 0) {
 		this.iterations = iterations;
 	}
 

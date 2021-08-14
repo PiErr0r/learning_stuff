@@ -1,8 +1,8 @@
 import Canvas from "Canvas/Canvas";
 import Particle from "Particle/Particle";
 import Vector from "Geometry/Vector";
-import FGBuoyancy from "Particle/FGBuoyancy";
-import FGGravity from "Particle/FGGravity";
+import FGBuoyancy from "FGs/FGBuoyancy";
+import FGGravity from "FGs/FGGravity";
 import ParticleForceRegistry from "Particle/ParticleForceRegistry";
 
 const t = 1000/150;

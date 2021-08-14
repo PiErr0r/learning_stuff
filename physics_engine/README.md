@@ -8,8 +8,8 @@ Literature: Game Physics Engine Development by Ian Millington
 - [x] test basic forces (`__index20210807.ts`)
 - [x] chapters 5-6: general forces and springs
 - [x] test force generators (`__index20210814.ts`)
-- [ ] chapters 7-8: collision and overview
-- [ ] test engine so far
+- [x] chapters 7-8: collision and overview
+- [ ] test engine so far (create a bridge - something like Golden Gate but simple)
 - [ ] chapters 9-11: rotation and rigid body
 - [ ] test rotation and rigid body engine
 - [ ] chapters 12-13: collision and contact
