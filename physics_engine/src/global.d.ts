@@ -30,6 +30,13 @@ interface IParticle {
 	acceleration: Vector
 }
 
+type PContact = [Particle, Particle|null];
+
 interface IForceGenerator {
 	updateForce: (p:Particle, duration:number) => void;
+}
+
+interface ILink {
+	particle: PContact;
+	fillContact: (contact: ParticleContact, limit: number) => number;
 }
