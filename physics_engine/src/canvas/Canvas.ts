@@ -6,10 +6,13 @@ class Canvas {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 	theme: theme;
-	private POINT_OPTS = {
+	private OPTS = {
 		fillStyleDark: "#efefef",
 		fillStyleLight: "#101010",
+		strokeStyleDark: "#efefef",
+		strokeStyleLight: "#101010",
 		radius: 5,
+		lineWidth: 2,
 	};
 	constructor(theme?:theme) {
 		this.theme = theme === undefined ? "dark" : theme;
@@ -30,12 +33,16 @@ class Canvas {
 	}
 
 	getFillStyle():string {
-		return this.POINT_OPTS[this.theme === "dark" ? "fillStyleDark" : "fillStyleLight"];
+		return this.OPTS[this.theme === "dark" ? "fillStyleDark" : "fillStyleLight"];
+	}
+
+	getStrokeStyle():string {
+		return this.OPTS[this.theme === "dark" ? "strokeStyleDark" : "strokeStyleLight"];
 	}
 
 	drawPoint(pt: IPoint, opts: DrawOpts = {}):void {
 		const fillStyle:string = opts.fillStyle === undefined ? this.getFillStyle() : opts.fillStyle;
-		const radius:number = opts.radius === undefined ? this.POINT_OPTS.radius : opts.radius;
+		const radius:number = opts.radius === undefined ? this.OPTS.radius : opts.radius;
 		const { x, y } = pt;
 	  this.ctx.beginPath();
 	  this.ctx.arc(x, this.canvas.height - y, radius, 0, 2 * Math.PI, true);
@@ -47,8 +54,15 @@ class Canvas {
 		pts.forEach(pt => this.drawPoint(pt));
 	}
 
-	drawLine() {
-
+	drawLine(pt1: IPoint, pt2: IPoint, opts: DrawOpts = {}):void {
+		const lineWidth = opts.lineWidth === undefined ? this.OPTS.lineWidth : opts.lineWidth;
+		const strokeStyle = opts.strokeStyle === undefined ? this.getStrokeStyle() : opts.strokeStyle;
+		this.ctx.strokeStyle = strokeStyle;
+		this.ctx.lineWidth = lineWidth;
+		this.ctx.beginPath();
+		this.ctx.moveTo(pt1.x, this.canvas.height - pt1.y);
+		this.ctx.lineTo(pt2.x, this.canvas.height - pt2.y);
+		this.ctx.stroke();
 	}
 
 	drawLines() {

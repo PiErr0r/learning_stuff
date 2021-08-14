@@ -47,7 +47,14 @@ class Particle implements IParticle {
 		this._damping = value;
 	}
 
-	integrate(t:number, f:Vector): void {
+	logForceAcc(p?:'x'|'y'|'z'):void {
+		if (p === undefined) 	
+			console.log(this._forceAcc);
+		else
+			console.log(this._forceAcc[p]);
+	}
+
+	integrate(t:number): void {
 		if (t === 0) throw new Error("Time difference cannot be 0");
 
 		this.position.addScaled(this.velocity, t); // add here a * (t^2 / 2) if necessary

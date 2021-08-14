@@ -11,8 +11,10 @@ interface IPoint {
 
 interface DrawOpts {
 	fillStyle?: string;
+	strokeStyle?: string;
 	radius?: number;
 	drawPoints?: boolean;
+	lineWidth?: number;
 }
 
 interface IVector {

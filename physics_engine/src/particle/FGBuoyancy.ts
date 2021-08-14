@@ -16,13 +16,14 @@ class FGBuoyancy implements IForceGenerator {
 	updateForce(particle: Particle, duration: number): void {
 		const depth = particle.position.y;
 		const force = new Vector();
+		if (depth >= this.liquidH + this.maxDepth) return;
 		if (depth <= this.liquidH - this.maxDepth) {
 			force.y = this.liquidRo * this.volume;
 			particle.addForce(force);
 			return;
 		}
 		force.y = this.liquidRo * this.volume * 
-			(depth - this.maxDepth - this.liquidH) / (2 * this.maxDepth);
+			Math.abs(depth - this.maxDepth - this.liquidH) / (2 * this.maxDepth);
 		particle.addForce(force);
 	}
 }
