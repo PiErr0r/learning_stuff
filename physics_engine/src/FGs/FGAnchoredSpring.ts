@@ -1,4 +1,4 @@
-import Particle from "./Particle";
+import Particle from "Particle/Particle";
 import Vector from "Geometry/Vector";
 
 class FGAnchoredSpring implements IForceGenerator {

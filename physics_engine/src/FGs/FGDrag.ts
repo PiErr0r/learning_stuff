@@ -1,4 +1,4 @@
-import Particle from "./Particle";
+import Particle from "Particle/Particle";
 
 class FGDrag implements IForceGenerator {
 	k1: number = 0; // coeff velocity drag

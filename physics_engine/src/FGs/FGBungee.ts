@@ -1,4 +1,4 @@
-import Particle from "./Particle";
+import Particle from "Particle/Particle";
 
 class FGBungee implements IForceGenerator {
 	other: Particle;

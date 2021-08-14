@@ -1,5 +1,5 @@
+import Particle from "Particle/Particle";
 import Vector from "Geometry/Vector";
-import Particle from "./Particle";
 
 class FGGravity implements IForceGenerator {
 	gravity: Vector = new Vector(0, -10, 0);
