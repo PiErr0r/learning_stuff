@@ -1,3 +1,6 @@
+module.exports.Layer = {
+	...require("./dense"),	
+}
 module.exports = {
-	...require("./layer"),
+	...require("./network")
 }
