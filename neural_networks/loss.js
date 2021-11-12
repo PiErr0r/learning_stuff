@@ -15,9 +15,9 @@ class CategoricalCrossEntropy extends Loss {
 		const clipped = math.clip(yPred);
 		let conf;
 		if (math.isV(yTrue)) {
-			conf = yPred.index(yTrue);
+			conf = clipped.index(yTrue);
 		} else if (math.isM(yTrue)) {
-			conf = yPred.dot(yTrue, true).sum(1);
+			conf = clipped.dot(yTrue, true).sum(1);
 		} else {
 			// TODO
 			throw new Error("MAKE GOOD ERRORS");
