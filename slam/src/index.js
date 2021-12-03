@@ -1,4 +1,4 @@
-// import cv from "./lib/opencv";
+// https://github.com/ucisysarch/opencvjs/blob/master/test/features_2d.html
 
 function image() {
   return;
@@ -21,6 +21,24 @@ function image() {
   }
 }
 
+class FeatureExtractor {
+  constructor() {
+    this.orb = new cv.ORB(3000);
+    this.kp = new cv.KeyPointVector();
+    this.des = new cv.Mat();
+  }
+
+  extract(img) {
+    this.orb.detect(img, this.kp);
+    this.orb.compute(img, this.kp, this.des);
+  }
+
+  destroy() {
+    this.kp.delete();
+    this.des.delete();
+  }
+}
+
 function video() {
   let video = document.getElementById("videoSrc"); // video is the id of video tag
   video.src = "videos/test_countryroad.mp4";
@@ -35,7 +53,7 @@ function video() {
   //   });
 
   let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-  let dst = new cv.Mat(video.height / 2, video.width / 2, cv.CV_8UC1);
+  let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
   let cap = new cv.VideoCapture(video);
 
   let streaming = false;
@@ -51,22 +69,24 @@ function video() {
       processVideo();
     }
   }
-
+  // console.log(cv)
   window.addEventListener("beforeunload", function (e) {
     var confirmationMessage = 'It looks like you have been editing something. '
 
     if (!src.empty()) {
       e.preventDefault();
       (e || window.event).returnValue = confirmationMessage; //Gecko + IE
-
+      dst.delete();
       src.delete();
+      FE.destroy();
       return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
     }
   });
-  console.log(src.empty())
+
   const FPS = 30;
+  const FE = new FeatureExtractor();
+
   function processVideo() {
-    console.log(streaming)
     try {
       if (!streaming) {
         return;
@@ -74,10 +94,13 @@ function video() {
       let begin = Date.now();
       // start processing.
       cap.read(src);
-      // cv.resize(src, dst, new cv.Size(650*2, 380*2))
-      cv.imshow('canvasOutputVideo', src);
+      FE.extract(src)
+      cv.drawKeypoints(src, FE.kp, dst, [0, 255, 0, 255]);
+      cv.imshow('canvasOutputVideo', dst);
+
       // schedule the next one.
       let delay = 1000/FPS - (Date.now() - begin);
+
       setTimeout(processVideo, delay);
     } catch (err) {
       console.error(err);
