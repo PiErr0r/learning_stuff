@@ -1,3 +1,5 @@
+
+
 class FeatureExtractor {
   constructor() {
     this.orb = new cv.ORB();
@@ -54,11 +56,11 @@ class FeatureExtractor {
       const m = twos.get(0);
       const n = twos.get(1);
 
-      if (m.distance < 0.5*n.distance) {
+      if (m.distance < 0.65*n.distance) {
         this.matches.push([ this.kps.get(m.queryIdx), this.last.kps.get(m.trainIdx) ]);
       }
     }
-
+    // console.log(this.matches.length)
     this.last = {
       des: this.des.clone(),
       kps: this.kps.clone()

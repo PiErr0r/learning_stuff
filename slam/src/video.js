@@ -60,7 +60,8 @@ function video() {
 
       // schedule the next one.
       let delay = 1000/FPS - (Date.now() - begin);
-      setTimeout(() => {video.play(); processVideo();} , delay);
+      video.play();
+      setTimeout(() => processVideo(), delay);
     } catch (err) {
       console.error(err);
     }
