@@ -122,7 +122,7 @@ def main():
 			i-=1
 		# i = i % min_len
 		cnt += 1
-	print(s)
+	print(''.join(s))
 
 # for i in range(len(koefs)):
 # 	print(koefs[i] + koefs[len(koefs) - 1], end = " ")
