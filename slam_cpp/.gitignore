@@ -1,8 +1,1 @@
-CMakeFiles
-.vscode
-CMakeCache.txt
-test/DisplayImage
-test/DisplayVideo
-test/Makefile
-test/cmake_install.cmake
-
+build

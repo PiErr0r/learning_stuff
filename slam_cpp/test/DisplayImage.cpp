@@ -5,10 +5,19 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <iostream>
+#include <string>
+#include <filesystem>
+#include <unistd.h>
+
+using std::cout; using std::cin;
+using std::endl; using std::string;
+using std::filesystem::current_path;
+
 int main(int argc, char** argv)
 {
-
-	std::cout << cv::getBuildInformation() << std::endl;
+  cout << "Current working directory: " << current_path() << endl;
+	//std::cout << cv::getBuildInformation() << std::endl;
 	if (argc != 2) {
 		printf("usage: DisplayImage.out <Image_Path>\n");
 		return -1;
