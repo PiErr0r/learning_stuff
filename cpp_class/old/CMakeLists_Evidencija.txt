@@ -1,16 +1,16 @@
 
-add_library(Igrac Igrac.cpp)
+add_library(Garaza Garaza.cpp)
 
 # state that anybody linking to us needs to include the current source dir
 # to find MathFunctions.h, while we don't.
-target_include_directories(Igrac
+target_include_directories(Garaza
           INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
           )
 
-add_library(Spil Spil.cpp)
+add_library(Predmet Predmet.cpp)
 
 # state that anybody linking to us needs to include the current source dir
 # to find MathFunctions.h, while we don't.
-target_include_directories(Spil
+target_include_directories(Predmet
           INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
           )

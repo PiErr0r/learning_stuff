@@ -1,0 +1,24 @@
+
+add_library(Artikl Artikl.cpp)
+
+# state that anybody linking to us needs to include the current source dir
+# to find MathFunctions.h, while we don't.
+target_include_directories(Artikl
+          INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+          )
+
+add_library(Racun Racun.cpp)
+
+# state that anybody linking to us needs to include the current source dir
+# to find MathFunctions.h, while we don't.
+target_include_directories(Racun
+          INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+          )
+
+add_library(Kupac Kupac.cpp)
+
+# state that anybody linking to us needs to include the current source dir
+# to find MathFunctions.h, while we don't.
+target_include_directories(Kupac
+          INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+          )
