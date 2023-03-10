@@ -2,51 +2,52 @@
 #include <math.h>
 #include <vector>
 
-#include "Kompleksni.hpp"
+#include "Student.hpp"
+#include "Kolegij.hpp"
 
 using namespace std;
 
-float Modul(const Kompleksni& z) {
-    return sqrtf(z.re * z.re + z.im * z.im);
-}
+int main(void) {
+    int n;
+    cout << "Unesite broj studenata: ";
+    cin >> n;
+    vector<Student> studenti(n);
+    int i = 0;
+    for (auto &student : studenti) {
+        ++i;
+        string ime, prezime;
+        int br;
+        cout << "Unesite ime i prezime " << i  << ". studenta: ";
+        cin >> ime >> prezime;
+        cout << "Unesi broj kolegija studenta: ";
+        cin >> br;
+        student = Student(ime, prezime, br);
+        int j = 0;
+        for (auto &kolegij : student.kolegiji) {
+            ++j;
+            string naziv;
+            int ocjena;
+            cout << "Unesite naziv i ocjenu za " << j << ". kolegij: ";
+            cin >> naziv >> ocjena;
+            kolegij = Kolegij(naziv, ocjena);
+        }
+        cout << endl;
+    }
 
-void swap(Kompleksni* a, Kompleksni* b) {
-    Kompleksni *tmp = a;
-    a = b;
-    b = tmp;
-}
-
-void Sortiraj(vector<Kompleksni>& complex) {
-    for (int i = 0; i < (int)complex.size() - 1; ++i) {
-        int j = i + 1;
-        bool swapped = false;
-        while (j > 0 && Modul(complex[j]) < Modul(complex[j - 1])) {
-            swap(complex[j-1], complex[j]);
-            --j;
+    string kolegij;
+    float prosjek = 0.0;
+    int cnt = 0;
+    cout << "Unesite naziv kolegija: ";
+    cin >> kolegij;
+    for (auto s : studenti) {
+        for (auto k : s.kolegiji) {
+            if (k.naziv == kolegij) {
+                ++cnt;
+                prosjek += k.ocjena;
+            }
         }
     }
-}
-
-int main(void) {
-
-    int n;
-    cout << "Unesi N: ";
-    cin >> n;
-    vector<Kompleksni> complex(n);
-
-    for (int i = 0; i < n; ++i) {
-        float re, im;
-        cout << "niz[" << i << "].re = ";
-        cin >> re;
-        cout << "niz[" << i << "].im = ";
-        cin >> im;
-        complex[i] = Kompleksni(re, im);
-    }
-
-    Sortiraj(complex);
-    for (auto k : complex) {
-        cout << "Z(" << k.re << (k.im < 0 ? "" : "+") << k.im << "i) Modul: " << Modul(k) << endl; 
-    }
-
+    prosjek /= (float)cnt;
+    cout << "Prosjek ocjena iz kolegija " << kolegij << " iznosi " << prosjek << endl;
     return 0;
 } 
