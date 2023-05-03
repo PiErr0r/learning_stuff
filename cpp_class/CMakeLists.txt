@@ -3,4 +3,4 @@ project(Class)
 add_executable(Class main.cpp)
 add_subdirectory(src)
 
-target_link_libraries(Class PUBLIC Spil Igrac)
+target_link_libraries(Class PUBLIC Osoba)
