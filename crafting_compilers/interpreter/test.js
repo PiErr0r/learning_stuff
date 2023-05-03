@@ -1,0 +1,1 @@
+exports.STRING = "Hello World!";
