@@ -14,7 +14,7 @@ class JLOX {
 			this.runFile(argv[1]);
 		// error, print usage
 		} else {
-			process.stdout.write("Usage: node jlox [script]");
+			process.stdout.write("Usage: node jlox [script]\n");
 		}
 	}
 
