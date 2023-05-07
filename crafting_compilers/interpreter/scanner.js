@@ -23,14 +23,10 @@ const keywords = {
 class Scanner {
 	constructor(source) {
 		this.source = source;
-		this.start = 0;
-		this.current = 0;
+		this.start = 0; // start of token pointer
+		this.current = 0; // current character
 		this.line = 1;
-		this.tokens = [];
-	}
-
-	isAtEnd() {
-		return this.current >= this.source.length;
+		this.tokens = []; // token container
 	}
 
 	scanTokens() {
@@ -99,6 +95,11 @@ class Scanner {
 		}
 	}
 
+	isAtEnd() {
+		// check if current pointer is out of file
+		return this.current >= this.source.length;
+	}
+
 	isDigit(c) {
 		return c >= '0' && c <= '9';
 	}
@@ -114,69 +115,71 @@ class Scanner {
 	}
 
 	blockComment() {
+		// scan a block comment
 		while (this.peek() !== '*' && this.peekNext() !== '/' && !this.isAtEnd()) {
 			if (this.peek() === '\n') ++this.line;
 			this.advance();
 		}
-		// console.log(this.peek())
+		// error
 		if (this.current + 1 >= this.source.length || this.peek() !== '*' || this.peekNext() !== '/') {
 			const { JLOX } = require('./jlox');
 			JLOX.error(this.line, "Unterminated block comment.");						
 			return;
 		}
+		// closing * and /
 		this.advance();
 		this.advance();
 	}
 
 	identifier() {
+		// scan identifier
 		while(this.isAlphaNumeric(this.peek())) this.advance();
-
 		const text = this.source.slice(this.start, this.current);
+		// check if it really is an identifier or some keyword
 		const type = keywords[text] || TokenType.IDENTIFIER;
-
 		this.addToken(type);
 	}
 
 	number() {
+		// scan number
 		while (this.isDigit(this.peek())) this.advance();
-
 		if (this.peek() === '.' && this.isDigit(this.peekNext())) {
 			this.advance();
 			while(this.isDigit(this.peek())) this.advance();
 		}
-
 		this._addToken(TokenType.NUMBER, parseFloat(this.source.slice(this.start, this.current)));
 	}
 
 	string() {
+		// scan string
 		while (this.peek() !== '"' && !this.isAtEnd()) {
 			if (this.peek() === '\n') ++this.line;
 			this.advance();
 		}
-
 		if (this.isAtEnd()) {
 			const { JLOX } = require('./jlox');
 			JLOX.error(this.line, "Unterminated string.");
 			return;
 		}
-
 		this.advance(); // closing "
-
 		const value = this.source.slice(this.start + 1, this.current - 1);
 		this._addToken(TokenType.STRING, value);
 	}
 
 	peek() {
+		// lookahead 1 character
 		if (this.isAtEnd()) return '\0';
 		return this.source[ this.current ];
 	}
 
 	peekNext() {
+		// lookahead 2 characters
 		if (this.current + 1 >= this.source.length) return '\0';
 		return this.source[ this.current + 1 ];
 	}
 
 	match(expected) {
+		// match next character
 		if (this.isAtEnd()) return false;
 		if (this.source[ this.current ] !== expected)
 			return false;
@@ -185,14 +188,17 @@ class Scanner {
 	}
 
 	advance() {
+		// move pointer one position ahead
 		return this.source[this.current++];
 	}
 
 	addToken(type) {
+		// add token to list (single)
 		this._addToken(type, null);
 	}
 
 	_addToken(type, literal) {
+		// add token to list with value
 		const text = this.source.slice(this.start, this.current);
 		this.tokens.push(new Token(type, text, literal, this.line));
 	}

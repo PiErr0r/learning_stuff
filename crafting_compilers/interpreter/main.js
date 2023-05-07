@@ -1,4 +1,4 @@
-const { JLOX } = require('./jlox.js');
+const { JLOX } = require('./jlox');
 
 
 const main = () => {
@@ -6,8 +6,3 @@ const main = () => {
 }
 
 main();
-/*
-
-test
-
-*/
