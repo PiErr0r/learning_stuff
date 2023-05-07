@@ -1,1 +1,0 @@
-exports.STRING = "Hello World!";
