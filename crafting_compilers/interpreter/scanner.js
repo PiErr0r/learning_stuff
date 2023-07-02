@@ -204,4 +204,4 @@ class Scanner {
 	}
 }
 
-exports.Scanner = Scanner;
+module.exports = { Scanner };

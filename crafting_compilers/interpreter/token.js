@@ -13,4 +13,4 @@ class Token {
 	}
 }
 
-exports.Token = Token;
+module.exports = { Token };

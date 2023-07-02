@@ -48,4 +48,4 @@ const TokenType = {
 	EOF: 500,
 }
 
-exports.TokenType = TokenType;
+module.exports = { TokenType };

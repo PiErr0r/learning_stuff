@@ -1,5 +1,9 @@
 const fs = require('fs');
+const { ASTPrinter } = require('./ast_printer');
+const { Parser } = require('./parser');
 const { Scanner } = require('./scanner');
+const { Token } = require('./token');
+const { TokenType } = require('./token_type');
 
 let HAD_ERROR = false;
 
@@ -49,12 +53,30 @@ class JLOX {
 	run(data) {
 		const scanner = new Scanner(data);
 		const tokens = scanner.scanTokens();
-		tokens.forEach(token => {
-			console.log(token);
-		});
+		const parser = new Parser(tokens);
+		let expr = parser.parse();
+		if (HAD_ERROR) return;
+		const ast = new ASTPrinter();
+		console.log(ast.print(expr));
 	}
 
-	static error(line, message) {
+	static error(_, message) {
+		if (_ instanceof Token) {
+			this.errorToken(_, message);
+		} else {
+			this.errorLine(_, message);
+		}
+	}
+
+	static errorToken(token, message) {
+		if (token.type === TokenType.EOF) {
+			this.report(token.line, "at end", message);
+		} else {
+			this.report(token.line, `at '${token.lexeme}'`, message)
+		}
+	}
+
+	static errorLine(line, message) {
 		this.report(line, "", message);
 	}
 
@@ -64,4 +86,5 @@ class JLOX {
 	}
 }
 
-exports.JLOX = JLOX;
+// exports.JLOX = JLOX;
+module.exports = { JLOX };
