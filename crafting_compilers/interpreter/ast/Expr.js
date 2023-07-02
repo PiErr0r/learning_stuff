@@ -3,10 +3,24 @@ class Expr {
 }
 
 class ExprVisitor {
+  visitTernaryExpr(expr) {};
   visitBinaryExpr(expr) {};
   visitGroupingExpr(expr) {};
   visitLiteralExpr(expr) {};
   visitUnaryExpr(expr) {};
+}
+
+
+class Ternary extends Expr {
+  constructor(/*Expr*/ condition, /*Expr*/ resTrue, /*Expr*/ resFalse) {
+    super();
+    this.condition = condition; // Expr
+    this.resTrue = resTrue; // Expr
+    this.resFalse = resFalse; // Expr
+  }
+  accept(visitor) {
+    return visitor.visitTernaryExpr(this);
+  }
 }
 
 
@@ -59,6 +73,7 @@ class Unary extends Expr {
 module.exports = {
   Expr
 , ExprVisitor
+, Ternary
 , Binary
 , Grouping
 , Literal

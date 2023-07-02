@@ -5,6 +5,10 @@ class ASTPrinter extends Expr.ExprVisitor {
 		return expr.accept(this);
 	}
 
+	visitTernaryExpr(expr) {
+		return this.parenthesize('?:', expr.condition, expr.resTrue, expr.resFalse);
+	}
+
 	visitBinaryExpr(expr) {
 		return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
 	}

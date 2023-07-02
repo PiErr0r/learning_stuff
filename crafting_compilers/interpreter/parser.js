@@ -16,7 +16,7 @@ class Parser {
 
 	parse() {
 		try {
-			return this.expression();
+			return this.batch();
 		} catch (err) {
 			if (err instanceof ParseError) {
 				return null;
@@ -26,8 +26,27 @@ class Parser {
 		}
 	}
 
+	batch() { // batch -> expression ( (',') expression )*
+		let expr = this.expression();
+
+		while (this.match(TokenType.COMMA)) {
+			expr = this.expression();
+		}
+
+		return expr;
+	}
+
 	expression() {
-		return this.equality();
+		let expr = this.equality();
+		if (this.match(TokenType.QUERY)) {
+			const exprTrue = this.equality();
+			if (!this.match(TokenType.COLON)) {
+				this.error(this.previous(), "Expect ternary operator!");
+			}
+			const exprFalse = this.equality();
+			return new Expr.Ternary(expr, exprTrue, exprFalse);
+		}
+		return expr;
 	}
 
 	equality() {

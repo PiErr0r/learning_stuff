@@ -1,26 +1,28 @@
 const TokenType = {
 	// Single-character tokens.
-	LEFT_PAREN: 100,
-	RIGHT_PAREN: 101,
-	LEFT_BRACE: 102,
-	RIGHT_BRACE: 103,
-	COMMA: 104,
-	DOT: 105,
-	MINUS: 106,
-	PLUS: 107,
-	SEMICOLON: 108,
-	SLASH: 109,
-	STAR: 110,
+	LEFT_PAREN: 100,	// (
+	RIGHT_PAREN: 101,	// )
+	LEFT_BRACE: 102,	// {
+	RIGHT_BRACE: 103,	// }
+	COMMA: 104,			// ,
+	DOT: 105,			// .
+	MINUS: 106,			// -
+	PLUS: 107,			// +
+	SEMICOLON: 108,		// ;
+	SLASH: 109,			// /
+	STAR: 110,			// *
+	QUERY: 111,			// ?
+	COLON: 112,			// :
 	
 	// One or two character tokens.
-	BANG: 200,
-	BANG_EQUAL: 201,
-	EQUAL: 202,
-	EQUAL_EQUAL: 203,
-	GREATER: 204,
-	GREATER_EQUAL: 205,
-	LESS: 206,
-	LESS_EQUAL: 207,
+	BANG: 200,			// !
+	BANG_EQUAL: 201,	// !=
+	EQUAL: 202,			// =
+	EQUAL_EQUAL: 203,	// ==
+	GREATER: 204,		// >
+	GREATER_EQUAL: 205,	// >=
+	LESS: 206,			// <
+	LESS_EQUAL: 207,	// <=
 	
 	// Literals.
 	IDENTIFIER: 300,

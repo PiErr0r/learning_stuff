@@ -83,6 +83,7 @@ const main = (argv) => {
 		outDir,
 		"Expr",
 		[
+			"Ternary:  Expr condition, Expr resTrue, Expr resFalse",
 			"Binary:   Expr left, Token operator, Expr right",
 			"Grouping: Expr expression",
 			"Literal:  Object value",
