@@ -1,11 +1,13 @@
 const fs = require('fs');
 const { ASTPrinter } = require('./ast_printer');
+const { Interpreter } = require('./interpreter');
 const { Parser } = require('./parser');
 const { Scanner } = require('./scanner');
 const { Token } = require('./token');
 const { TokenType } = require('./token_type');
 
 let HAD_ERROR = false;
+let HAD_RUNTIME_ERROR = false;
 
 class JLOX {
 	hadError = false;
@@ -33,6 +35,7 @@ class JLOX {
 			this.run(line);
 			// no error in new line in REPL
 			HAD_ERROR = false;
+			HAD_RUNTIME_ERROR = false;
 			readline.prompt(); // show >
 		});
 	}
@@ -41,9 +44,8 @@ class JLOX {
 		try {
 			const data = fs.readFileSync(filename, 'utf8');
 			this.run(data);
-			if (HAD_ERROR) {
-				process.exit(65);
-			}
+			if (HAD_ERROR) process.exit(65);
+			if (HAD_RUNTIME_ERROR) process.exit(70);
 		} catch (err) { // file not found or couldn't be opened
 			console.error(err);
 			process.exit(1);
@@ -56,8 +58,17 @@ class JLOX {
 		const parser = new Parser(tokens);
 		let expr = parser.parse();
 		if (HAD_ERROR) return;
-		const ast = new ASTPrinter();
-		console.log(ast.print(expr));
+		if (HAD_RUNTIME_ERROR) return;
+		// const ast = new ASTPrinter();
+		// console.log(ast.print(expr));
+		const interpreter = new Interpreter();
+		interpreter.interpret(expr);
+		console.log()
+	}
+
+	static runtimeError(op, message) {
+		process.stdout.write(`${message}\n[line ${op.line}]`);
+		HAD_RUNTIME_ERROR = true;
 	}
 
 	static error(_, message) {
