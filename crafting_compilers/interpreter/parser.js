@@ -39,11 +39,11 @@ class Parser {
 	expression() {
 		let expr = this.equality();
 		if (this.match(TokenType.QUERY)) {
-			const exprTrue = this.equality();
+			const exprTrue = this.expression();
 			if (!this.match(TokenType.COLON)) {
 				this.error(this.previous(), "Expect ternary operator!");
 			}
-			const exprFalse = this.equality();
+			const exprFalse = this.expression();
 			return new Expr.Ternary(expr, exprTrue, exprFalse);
 		}
 		return expr;
