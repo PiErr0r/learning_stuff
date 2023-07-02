@@ -64,7 +64,7 @@ class Scanner {
 				this.addToken(this.match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
 				break;
 			case '/':
-				if (this.match('/')) {
+				if (this.match('/')) { // line comment
 					while(this.peek() !== '\n' && !this.isAtEnd()) {
 						this.advance();
 					}

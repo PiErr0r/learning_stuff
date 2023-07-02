@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ensureDirectoryExistence(dirPath) => {
+const ensureDirectoryExistence = (dirPath) => {
   if (fs.existsSync(dirPath)) {
     return;
   }
@@ -14,7 +14,7 @@ const defineType = (S, baseName, className, fields) => {
 
 const defineAst = (outDir, baseName, types) => {
 	ensureDirectoryExistence(outDir);
-	const fileName = `${outDir}/${baseName}`;
+	const fileName = `${outDir}/${baseName}.js`;
 
 	let S = [];
 	S.push(`class ${baseName} {`);
