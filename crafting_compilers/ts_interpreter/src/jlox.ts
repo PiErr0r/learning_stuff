@@ -53,7 +53,7 @@ class JLOX {
 			if (HAD_ERROR) process.exit(65);
 			if (HAD_RUNTIME_ERROR) process.exit(70);
 		} catch (err) { // file not found or couldn't be opened
-			console.error(err);
+			process.stderr.write(`${(err as Error).message}\n`);
 			process.exit(1);
 		}
 	}
@@ -66,11 +66,7 @@ class JLOX {
 
 		if (HAD_ERROR) return;
 		if (HAD_RUNTIME_ERROR) return;
-		if (statements.length === 0) {
-			process.stdout.write("There was an error with program");
-			return;
-		}
-		// console.log(statements);
+
 		this.interpreter.interpret(statements);
 	}
 

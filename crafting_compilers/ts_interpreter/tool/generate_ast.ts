@@ -16,15 +16,17 @@ const defineType = (S: string[], baseName: string, className: string, fields: st
 	// constructor
 	const Fc = [], Fb = []; // fields as parameters and fields in constructor block
 	fields.forEach((f: string) => {
-		const [type, field] = f.split(' ');
-		Fc.push(`${field}: ${type}`);
-		Fb.push(`this.${field} = ${field};`);
-		S.push(`  ${field}: ${type};`)
+		const fs = f.split(' ');
+		const tp = fs.slice(0, fs.length - 1).join(' ');
+		const field = fs[fs.length - 1];
+		Fc.push(`${field}: ${tp}`);
+		Fb.push(`this.${field.replace('?', '')} = ${field.replace('?', '')};`);
+		S.push(`  ${field}: ${tp};`)
 	});
 	S.push(`  constructor(${Fc.join(', ')}) {`)
 	S.push('    super();')
 	Fb.forEach(f => {
-		S.push('    ' + f);
+		S.push('    ' + f.replace('?', ''));
 	});
 	S.push('  }');
 
@@ -99,6 +101,7 @@ const main = (argv: string[]) => {
 			"Binary:   Expr left, Token operator, Expr right",
 			"Grouping: Expr expression",
 			"Literal:  Literal value",
+			"Logical:  Expr left, Token operator, Expr right",
 			"Ternary:  Expr condition, Expr resTrue, Expr resFalse",
 			"Unary:    Token operator, Expr right",
 			"Variable: Token name",
@@ -113,9 +116,13 @@ const main = (argv: string[]) => {
 		"Stmt",
 		[
 			"Block:       Stmt[] statements",
+			"Break:",
+			"Continue:",
+			"If:          Expr condition, Stmt thenBranch, Stmt | null elseBranch",
 			"Expression:  Expr expression",
 			"Print:       Expr expression",
 			"Var:         Token name, Expr initializer, boolean isInitialized",
+			"While:       Expr condition, Stmt body, boolean isFor?",
 			"Error:",
 		], [
 			"Expr:ast/Expr",

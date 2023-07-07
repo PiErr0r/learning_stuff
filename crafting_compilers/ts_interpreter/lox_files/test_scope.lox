@@ -1,18 +1,21 @@
 var a = "global a";
-b = "global b";
-c = "global c";
-{
+var b = "global b";
+var c = "global c";
+if (true) {
 	var a = "outer a";
 	var b = "outer b";
-	{
+	if (1 != 1 or 1 == 1) {
 		var a = "inner a";
 		print a;
 		print b;
 		print c;
+	} else if (1 <= 2 and 1 >= 2) {
+		print "asd";
+	} else {
+		print a;
+		print b;
+		print c;
 	}
-	print a;
-	print b;
-	print c;
 }
 print a;
 print b;

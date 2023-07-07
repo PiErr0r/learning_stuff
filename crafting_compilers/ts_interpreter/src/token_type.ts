@@ -52,6 +52,8 @@ const TokenType: TT = {
 	TRUE: 413,
 	VAR: 414,
 	WHILE: 415,
+	BREAK: 416,
+	CONTINUE: 417,
 
 	EOF: 500,
 }

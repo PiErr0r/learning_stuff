@@ -1,0 +1,39 @@
+/*
+var a = 0;
+var temp;
+for (var b = 1; b < 300; b = temp + b) {
+	print a;
+	print b;
+	temp = a;
+	if (a > 20) continue;
+	a = b;
+}
+*/
+var a = 0;
+var temp;
+for (var b = 1; b < 200; b = temp + b) {
+	print a;
+	temp = a;
+	var forever = false;
+	while (a >= 20) {
+		a = a - 1;
+		print "DSA";
+		print a;
+		if (a == 20 and !forever) {
+			a = a + 1;
+			print "ASD";
+			print a;
+			forever = true;
+			continue;
+		}
+		break;
+	}
+	print a;
+	print "b";
+	print b;
+	if (a > 20) 
+		break;
+	a = b;
+}
+/*
+*/

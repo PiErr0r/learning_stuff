@@ -7,6 +7,7 @@ interface ExprVisitor<T> {
   visitBinaryExpr: (expr: ExprBinary) => T;
   visitGroupingExpr: (expr: ExprGrouping) => T;
   visitLiteralExpr: (expr: ExprLiteral) => T;
+  visitLogicalExpr: (expr: ExprLogical) => T;
   visitTernaryExpr: (expr: ExprTernary) => T;
   visitUnaryExpr: (expr: ExprUnary) => T;
   visitVariableExpr: (expr: ExprVariable) => T;
@@ -71,6 +72,22 @@ class ExprLiteral extends Expr {
 }
 
 
+class ExprLogical extends Expr {
+  left: Expr;
+  operator: Token;
+  right: Expr;
+  constructor(left: Expr, operator: Token, right: Expr) {
+    super();
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitLogicalExpr(this);
+  }
+}
+
+
 class ExprTernary extends Expr {
   condition: Expr;
   resTrue: Expr;
@@ -130,6 +147,7 @@ export {
 , ExprBinary
 , ExprGrouping
 , ExprLiteral
+, ExprLogical
 , ExprTernary
 , ExprUnary
 , ExprVariable

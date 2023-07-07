@@ -6,6 +6,7 @@ import {
 , ExprBinary
 , ExprGrouping
 , ExprLiteral
+, ExprLogical
 , ExprTernary
 , ExprUnary
 , ExprVariable
@@ -15,9 +16,13 @@ import {
 , StmtError
 , StmtVisitor
 , StmtBlock
+, StmtBreak
+, StmtContinue
+, StmtIf
 , StmtExpression
 , StmtPrint
 , StmtVar
+, StmtWhile
 } from '@/ast/Stmt';
 import { Literal, TokenType } from '@/token_type';
 import { Token } from '@/token';
@@ -28,6 +33,8 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	private environment = new Environment();
 	private REPL = false;
 	private inStmt = 0;
+	private shouldBreak = false;
+	private shouldContinue = false;
 	
 	interpret(statements: Stmt[]) {
 		try {
@@ -40,6 +47,8 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 				const message = "Can only add numbers or strings!";
 				JLOX.runtimeError(err.op, err.message);
 				this.inStmt = 0;
+				this.shouldBreak = false;
+				this.shouldContinue = false;
 			}
 			// Unknown error -> Exit
 			// throw new Error(err as string);
@@ -51,6 +60,9 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	}
 
 	execute(statement: Stmt) {
+		if (statement instanceof StmtBreak) this.shouldBreak = true;
+		if (statement instanceof StmtContinue) this.shouldContinue = true;
+		if (this.shouldBreak || this.shouldContinue) return;
 		statement.accept(this);
 	}
 
@@ -58,7 +70,11 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		const previous = this.environment;
 		try {
 			this.environment = environment;
-			statements.forEach(stmt => {
+			statements.forEach((stmt, i) => {
+				if (stmt instanceof StmtBreak && !this.shouldContinue) this.shouldBreak = true;
+				if (stmt instanceof StmtContinue && !this.shouldBreak) this.shouldContinue = true;
+				if (this.shouldBreak) return;
+				if (this.shouldContinue) return;
 				this.execute(stmt);
 			});
 		} finally {
@@ -67,6 +83,8 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	}
 
 	visitErrorStmt(statement: StmtError) {}
+	visitBreakStmt(statement: StmtBreak) {}
+	visitContinueStmt(statement: StmtContinue) {}
 
 	visitBlockStmt(statement: StmtBlock) {
 		++this.inStmt;
@@ -74,10 +92,35 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		--this.inStmt;
 	}
 
+	visitIfStmt(statement: StmtIf) {
+		++this.inStmt;
+		if (this.isTruthy(this.evaluate(statement.condition))) {
+			this.execute(statement.thenBranch);
+		} else if (statement.elseBranch !== null) {
+			this.execute(statement.elseBranch);
+		}
+		--this.inStmt;
+	}
+
 	visitVarStmt(statement: StmtVar) {
 		++this.inStmt;
 		const value = this.evaluate(statement.initializer);
 		this.environment.define(statement.name.lexeme, value, statement.isInitialized);
+		--this.inStmt;
+	}
+
+	visitWhileStmt(statement: StmtWhile) {
+		++this.inStmt;
+		while (this.isTruthy(this.evaluate(statement.condition))) {
+			this.shouldBreak = false;
+			this.shouldContinue = false;
+			this.execute(statement.body);
+			if (this.shouldBreak) break;
+			if (statement.isFor && this.shouldContinue) {
+				this.shouldContinue = false;
+				this.execute((statement.body as StmtBlock).statements[1]);
+			}
+		}
 		--this.inStmt;
 	}
 
@@ -114,6 +157,16 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 
 	visitLiteralExpr(expr: ExprLiteral): Literal {
 		return expr.value;
+	}
+
+	visitLogicalExpr(expr: ExprLogical): Literal {
+		const left = this.evaluate(expr.left);
+		if (expr.operator.type === TokenType.OR) {
+			if (this.isTruthy(left)) return left;
+		} else {
+			if (!this.isTruthy(left)) return left;
+		}
+		return this.evaluate(expr.right);
 	}
 
 	visitGroupingExpr(expr: ExprGrouping): Literal {
