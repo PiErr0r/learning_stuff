@@ -15,9 +15,11 @@ let HAD_ERROR = false;
 let HAD_RUNTIME_ERROR = false;
 
 class JLOX {
+	private interpreter = new Interpreter();
 	constructor(argv: string[]) {
 		// no arguments -> REPL
 		if (argv.length === 1) {
+			this.interpreter.setREPL(true);
 			this.runPrompt();
 		// one argument -> filename
 		} else if (argv.length === 2) {
@@ -68,11 +70,8 @@ class JLOX {
 			process.stdout.write("There was an error with program");
 			return;
 		}
-		// const ast = new ASTPrinter();
-		// console.log(ast.print(expr));
-		const interpreter = new Interpreter();
-		interpreter.interpret(statements);
-		console.log()
+		// console.log(statements);
+		this.interpreter.interpret(statements);
 	}
 
 	static runtimeError(op: Token, message: string) {

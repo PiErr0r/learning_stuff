@@ -53,10 +53,12 @@ class StmtPrint extends Stmt {
 class StmtVar extends Stmt {
   name: Token;
   initializer: Expr;
-  constructor(name: Token, initializer: Expr) {
+  isInitialized: boolean;
+  constructor(name: Token, initializer: Expr, isInitialized: boolean) {
     super();
     this.name = name;
     this.initializer = initializer;
+    this.isInitialized = isInitialized;
   }
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitVarStmt(this);

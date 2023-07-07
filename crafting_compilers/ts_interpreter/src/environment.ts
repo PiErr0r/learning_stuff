@@ -3,7 +3,7 @@ import { Token } from "@/token";
 import { RuntimeError } from "@/errors";
 
 interface Values {
-	[name: string]: Literal
+	[name: string]: Literal | undefined;
 }
 
 class Environment {
@@ -18,13 +18,16 @@ class Environment {
 		}
 	}
 
-	define(name: string, value: Literal) {
-		this.values[name] = value;
+	define(name: string, value: Literal, isInitialized: boolean) {
+		this.values[name] = isInitialized ? value : undefined;
 	}
 
 	get(name: Token): Literal | never {
 		if (name.lexeme in this.values) {
-			return this.values[name.lexeme];
+			if (this.values[name.lexeme] === undefined) {
+				throw new RuntimeError(name, `Uninitialized variable ${name.lexeme}`);
+			}
+			return this.values[name.lexeme] as Literal;
 		}
 
 		if (this.enclosing !== null) {

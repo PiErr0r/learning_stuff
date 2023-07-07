@@ -115,7 +115,7 @@ const main = (argv: string[]) => {
 			"Block:       Stmt[] statements",
 			"Expression:  Expr expression",
 			"Print:       Expr expression",
-			"Var:         Token name, Expr initializer",
+			"Var:         Token name, Expr initializer, boolean isInitialized",
 			"Error:",
 		], [
 			"Expr:ast/Expr",

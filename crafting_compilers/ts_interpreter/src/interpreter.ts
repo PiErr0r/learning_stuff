@@ -26,7 +26,9 @@ import { RuntimeError } from '@/errors';
 
 class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	private environment = new Environment();
-
+	private REPL = false;
+	private inStmt = 0;
+	
 	interpret(statements: Stmt[]) {
 		try {
 			statements.forEach(statement => {
@@ -37,10 +39,15 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 				const { JLOX } = require('./jlox');
 				const message = "Can only add numbers or strings!";
 				JLOX.runtimeError(err.op, err.message);
+				this.inStmt = 0;
 			}
 			// Unknown error -> Exit
-			throw new Error(err as string);
+			// throw new Error(err as string);
 		}
+	}
+
+	setREPL(value: boolean) {
+		this.REPL = true;
 	}
 
 	execute(statement: Stmt) {
@@ -62,22 +69,33 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	visitErrorStmt(statement: StmtError) {}
 
 	visitBlockStmt(statement: StmtBlock) {
+		++this.inStmt;
 		this.executeBlock(statement.statements, new Environment(this.environment));
+		--this.inStmt;
 	}
 
 	visitVarStmt(statement: StmtVar) {
+		++this.inStmt;
 		const value = this.evaluate(statement.initializer);
-		this.environment.define(statement.name.lexeme, value);
+		this.environment.define(statement.name.lexeme, value, statement.isInitialized);
+		--this.inStmt;
 	}
 
 	visitPrintStmt(statement: StmtPrint) {
+		++this.inStmt;
 		const value = this.evaluate(statement.expression);
 		process.stdout.write(this.stringify(value));
 		process.stdout.write("\n");
+		--this.inStmt;
 	}
 
 	visitExpressionStmt(statement: StmtExpression) {
-		this.evaluate(statement.expression)
+		++this.inStmt;
+		const value = this.evaluate(statement.expression)
+		--this.inStmt;
+		if (this.REPL && this.inStmt === 0 && !(statement.expression instanceof ExprAssign)) {
+			process.stdout.write(`${value}\n`);
+		}
 	}
 
 	visitAssignExpr(expr: ExprAssign): Literal {

@@ -48,18 +48,18 @@ class Parser {
 			if (err instanceof ParseError) {
 				this.synchronize();
 			}
-			// Unknown error -> Exit
-			throw new Error(err as string);
+			return new StmtError();
 		}	
 	}
 
 	varDeclaration(): Stmt {
 		const name = this.consume(TokenType.IDENTIFIER, "Expect variable name");
-		const initializer = this.match(TokenType.EQUAL)
+		const hasInit = this.match(TokenType.EQUAL);
+		const initializer = hasInit
 			? this.batch()
 			: new ExprLiteral(null);
 		this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration");
-		return new StmtVar(name, initializer)
+		return new StmtVar(name, initializer, hasInit)
 	}
 
 	statement(): Stmt {
