@@ -1,0 +1,22 @@
+{
+  "name": "ts_interpreter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf ./build && tsc && tsc-alias",
+    "start": "npm run build && node build/index.js",
+    "build:tool": "tsc tool/generate_ast.ts",
+    "start:tool": "node tool/generate_ast.js src/ast"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.0",
+    "tsc-alias": "^1.8.7",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.6"
+  }
+}
