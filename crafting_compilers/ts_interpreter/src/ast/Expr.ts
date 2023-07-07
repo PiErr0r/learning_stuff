@@ -3,11 +3,13 @@ import { Literal } from "@/token_type"
 
 
 interface ExprVisitor<T> {
-  visitTernaryExpr: (expr: ExprTernary) => T;
+  visitAssignExpr: (expr: ExprAssign) => T;
   visitBinaryExpr: (expr: ExprBinary) => T;
   visitGroupingExpr: (expr: ExprGrouping) => T;
   visitLiteralExpr: (expr: ExprLiteral) => T;
+  visitTernaryExpr: (expr: ExprTernary) => T;
   visitUnaryExpr: (expr: ExprUnary) => T;
+  visitVariableExpr: (expr: ExprVariable) => T;
   visitErrorExpr: (expr: ExprError) => T;
 }
 
@@ -15,18 +17,16 @@ abstract class Expr {
   abstract accept<T>(visitor: ExprVisitor<T>): T;
 }
 
-class ExprTernary extends Expr {
-  condition: Expr;
-  resTrue: Expr;
-  resFalse: Expr;
-  constructor(condition: Expr, resTrue: Expr, resFalse: Expr) {
+class ExprAssign extends Expr {
+  name: Token;
+  value: Expr;
+  constructor(name: Token, value: Expr) {
     super();
-    this.condition = condition;
-    this.resTrue = resTrue;
-    this.resFalse = resFalse;
+    this.name = name;
+    this.value = value;
   }
   accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitTernaryExpr(this);
+    return visitor.visitAssignExpr(this);
   }
 }
 
@@ -71,6 +71,22 @@ class ExprLiteral extends Expr {
 }
 
 
+class ExprTernary extends Expr {
+  condition: Expr;
+  resTrue: Expr;
+  resFalse: Expr;
+  constructor(condition: Expr, resTrue: Expr, resFalse: Expr) {
+    super();
+    this.condition = condition;
+    this.resTrue = resTrue;
+    this.resFalse = resFalse;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitTernaryExpr(this);
+  }
+}
+
+
 class ExprUnary extends Expr {
   operator: Token;
   right: Expr;
@@ -81,6 +97,18 @@ class ExprUnary extends Expr {
   }
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+
+class ExprVariable extends Expr {
+  name: Token;
+  constructor(name: Token) {
+    super();
+    this.name = name;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitVariableExpr(this);
   }
 }
 
@@ -98,10 +126,12 @@ class ExprError extends Expr {
 export {
   Expr
 , ExprVisitor
-, ExprTernary
+, ExprAssign
 , ExprBinary
 , ExprGrouping
 , ExprLiteral
+, ExprTernary
 , ExprUnary
+, ExprVariable
 , ExprError
 };

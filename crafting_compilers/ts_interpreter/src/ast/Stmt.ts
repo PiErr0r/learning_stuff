@@ -3,14 +3,28 @@ import { Token } from "@/token"
 
 
 interface StmtVisitor<T> {
+  visitBlockStmt: (stmt: StmtBlock) => T;
   visitExpressionStmt: (stmt: StmtExpression) => T;
   visitPrintStmt: (stmt: StmtPrint) => T;
+  visitVarStmt: (stmt: StmtVar) => T;
   visitErrorStmt: (stmt: StmtError) => T;
 }
 
 abstract class Stmt {
   abstract accept<T>(visitor: StmtVisitor<T>): T;
 }
+
+class StmtBlock extends Stmt {
+  statements: Stmt[];
+  constructor(statements: Stmt[]) {
+    super();
+    this.statements = statements;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitBlockStmt(this);
+  }
+}
+
 
 class StmtExpression extends Stmt {
   expression: Expr;
@@ -36,6 +50,20 @@ class StmtPrint extends Stmt {
 }
 
 
+class StmtVar extends Stmt {
+  name: Token;
+  initializer: Expr;
+  constructor(name: Token, initializer: Expr) {
+    super();
+    this.name = name;
+    this.initializer = initializer;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitVarStmt(this);
+  }
+}
+
+
 class StmtError extends Stmt {
   constructor() {
     super();
@@ -49,7 +77,9 @@ class StmtError extends Stmt {
 export {
   Stmt
 , StmtVisitor
+, StmtBlock
 , StmtExpression
 , StmtPrint
+, StmtVar
 , StmtError
 };

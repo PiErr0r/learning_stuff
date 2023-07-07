@@ -1,6 +1,9 @@
 import fs from 'fs';
+// AST
 import { ASTPrinter } from '@/ast_printer';
 import { Expr } from "@/ast/Expr";
+import { Stmt } from "@/ast/Stmt";
+
 import { Interpreter } from '@/interpreter';
 import { Parser } from '@/parser';
 import { Scanner } from '@/scanner';
@@ -57,18 +60,18 @@ class JLOX {
 		const scanner = new Scanner(data);
 		const tokens = scanner.scanTokens();
 		const parser = new Parser(tokens);
-		const expr = parser.parse();
+		const statements = parser.parse();
 
 		if (HAD_ERROR) return;
 		if (HAD_RUNTIME_ERROR) return;
-		if (expr === null) {
-			process.stdout.write("There was an error with expression");
+		if (statements.length === 0) {
+			process.stdout.write("There was an error with program");
 			return;
 		}
 		// const ast = new ASTPrinter();
 		// console.log(ast.print(expr));
 		const interpreter = new Interpreter();
-		interpreter.interpret(expr);
+		interpreter.interpret(statements);
 		console.log()
 	}
 

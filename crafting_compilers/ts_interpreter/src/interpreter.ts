@@ -2,39 +2,92 @@ import {
   Expr
 , ExprError
 , ExprVisitor
-, ExprTernary
+, ExprAssign
 , ExprBinary
 , ExprGrouping
 , ExprLiteral
+, ExprTernary
 , ExprUnary
+, ExprVariable
 } from '@/ast/Expr';
+import {
+  Stmt
+, StmtError
+, StmtVisitor
+, StmtBlock
+, StmtExpression
+, StmtPrint
+, StmtVar
+} from '@/ast/Stmt';
 import { Literal, TokenType } from '@/token_type';
 import { Token } from '@/token';
+import { Environment } from '@/environment';
+import { RuntimeError } from '@/errors';
 
-class RuntimeError extends Error {
-	op: Token;
-	constructor(op: Token, message: string) {
-		super(message);
-		this.name = 'RuntimeError';
-		this.op = op;
-	}
-}
+class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
+	private environment = new Environment();
 
-class Interpreter implements ExprVisitor<Literal> {
-	interpret(expr: Expr) {
+	interpret(statements: Stmt[]) {
 		try {
-			const value = this.evaluate(expr);
-			process.stdout.write(this.stringify(value));
+			statements.forEach(statement => {
+				this.execute(statement);
+			});
 		} catch (err) {
 			if (err instanceof RuntimeError) {
 				const { JLOX } = require('./jlox');
 				const message = "Can only add numbers or strings!";
 				JLOX.runtimeError(err.op, err.message);
-				return null;
 			}
 			// Unknown error -> Exit
 			throw new Error(err as string);
 		}
+	}
+
+	execute(statement: Stmt) {
+		statement.accept(this);
+	}
+
+	executeBlock(statements: Stmt[], environment: Environment) {
+		const previous = this.environment;
+		try {
+			this.environment = environment;
+			statements.forEach(stmt => {
+				this.execute(stmt);
+			});
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	visitErrorStmt(statement: StmtError) {}
+
+	visitBlockStmt(statement: StmtBlock) {
+		this.executeBlock(statement.statements, new Environment(this.environment));
+	}
+
+	visitVarStmt(statement: StmtVar) {
+		const value = this.evaluate(statement.initializer);
+		this.environment.define(statement.name.lexeme, value);
+	}
+
+	visitPrintStmt(statement: StmtPrint) {
+		const value = this.evaluate(statement.expression);
+		process.stdout.write(this.stringify(value));
+		process.stdout.write("\n");
+	}
+
+	visitExpressionStmt(statement: StmtExpression) {
+		this.evaluate(statement.expression)
+	}
+
+	visitAssignExpr(expr: ExprAssign): Literal {
+		const value = this.evaluate(expr.value);
+		this.environment.assign(expr.name, value);
+		return value;
+	}
+
+	visitVariableExpr(expr: ExprVariable): Literal {
+		return this.environment.get(expr.name);
 	}
 
 	visitErrorExpr(expr: ExprError): Literal {
@@ -60,7 +113,7 @@ class Interpreter implements ExprVisitor<Literal> {
 		return null;
 	}
 
-	visitBinaryExpr(expr: ExprBinary): Literal {
+	visitBinaryExpr(expr: ExprBinary): Literal | never {
 		const left = this.evaluate(expr.left);
 		const right = this.evaluate(expr.right);
 

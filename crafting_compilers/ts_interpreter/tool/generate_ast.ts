@@ -95,11 +95,13 @@ const main = (argv: string[]) => {
 		outDir,
 		"Expr",
 		[
-			"Ternary:  Expr condition, Expr resTrue, Expr resFalse",
+			"Assign:   Token name, Expr value",
 			"Binary:   Expr left, Token operator, Expr right",
 			"Grouping: Expr expression",
 			"Literal:  Literal value",
+			"Ternary:  Expr condition, Expr resTrue, Expr resFalse",
 			"Unary:    Token operator, Expr right",
+			"Variable: Token name",
 			"Error:",
 		], [
 			"Token:token",
@@ -110,8 +112,10 @@ const main = (argv: string[]) => {
 		outDir,
 		"Stmt",
 		[
+			"Block:       Stmt[] statements",
 			"Expression:  Expr expression",
-			"Print:   		Expr expression",
+			"Print:       Expr expression",
+			"Var:         Token name, Expr initializer",
 			"Error:",
 		], [
 			"Expr:ast/Expr",
