@@ -1,20 +1,18 @@
-import { Literal } from "@/token_type"
 import { Token } from "@/token"
+import { Literal } from "@/token_type"
 
 
-interface ExprVisitor {
-  visitTernaryExpr: (expr: ExprTernary) => Literal;
-  visitBinaryExpr: (expr: ExprBinary) => Literal;
-  visitGroupingExpr: (expr: ExprGrouping) => Literal;
-  visitLiteralExpr: (expr: ExprLiteral) => Literal;
-  visitUnaryExpr: (expr: ExprUnary) => Literal;
+interface ExprVisitor<T> {
+  visitTernaryExpr: (expr: ExprTernary) => T;
+  visitBinaryExpr: (expr: ExprBinary) => T;
+  visitGroupingExpr: (expr: ExprGrouping) => T;
+  visitLiteralExpr: (expr: ExprLiteral) => T;
+  visitUnaryExpr: (expr: ExprUnary) => T;
+  visitErrorExpr: (expr: ExprError) => T;
 }
 
-class Expr {
-  accept(visitor: ExprVisitor): Literal {
-console.error("Called on main class! Not implemented");
-return null;
-};
+abstract class Expr {
+  abstract accept<T>(visitor: ExprVisitor<T>): T;
 }
 
 class ExprTernary extends Expr {
@@ -27,7 +25,7 @@ class ExprTernary extends Expr {
     this.resTrue = resTrue;
     this.resFalse = resFalse;
   }
-  accept(visitor: ExprVisitor): Literal {
+  accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitTernaryExpr(this);
   }
 }
@@ -43,7 +41,7 @@ class ExprBinary extends Expr {
     this.operator = operator;
     this.right = right;
   }
-  accept(visitor: ExprVisitor): Literal {
+  accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitBinaryExpr(this);
   }
 }
@@ -55,7 +53,7 @@ class ExprGrouping extends Expr {
     super();
     this.expression = expression;
   }
-  accept(visitor: ExprVisitor): Literal {
+  accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitGroupingExpr(this);
   }
 }
@@ -67,7 +65,7 @@ class ExprLiteral extends Expr {
     super();
     this.value = value;
   }
-  accept(visitor: ExprVisitor): Literal {
+  accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitLiteralExpr(this);
   }
 }
@@ -81,13 +79,21 @@ class ExprUnary extends Expr {
     this.operator = operator;
     this.right = right;
   }
-  accept(visitor: ExprVisitor): Literal {
+  accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitUnaryExpr(this);
   }
 }
 
 
-class ExprError extends Expr {};
+class ExprError extends Expr {
+  constructor() {
+    super();
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitErrorExpr(this);
+  }
+}
+
 
 export {
   Expr

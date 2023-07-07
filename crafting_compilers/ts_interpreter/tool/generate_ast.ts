@@ -29,7 +29,7 @@ const defineType = (S: string[], baseName: string, className: string, fields: st
 	S.push('  }');
 
 	// accept method
-	S.push(`  accept(visitor: ${baseName}Visitor): Literal {`);
+	S.push(`  accept<T>(visitor: ${baseName}Visitor<T>): T {`);
 	S.push(`    return visitor.visit${className}${baseName}(this);`);
 	S.push('  }');
 
@@ -39,42 +39,44 @@ const defineType = (S: string[], baseName: string, className: string, fields: st
 
 const defineVisitor = (S: string[], baseName: string, types: string[]) => {
 	S.push(''); // newline
-	S.push(`interface ${baseName}Visitor {`);
+	S.push(`interface ${baseName}Visitor<T> {`);
 	// methods
 	types.forEach(t => {
 		const typename = t.split(':')[0];
-		S.push(`  visit${typename}${baseName}: (${baseName.toLowerCase()}: ${baseName}${typename}) => Literal;`);
+		S.push(`  visit${typename}${baseName}: (${baseName.toLowerCase()}: ${baseName}${typename}) => T;`);
 	})
 	S.push('}');
 	S.push(''); // newline
 }
 
-const defineAst = (outDir: string, baseName: string, types: string[]) => {
+const defineAst = (outDir: string, baseName: string, types: string[], imports: string[]) => {
 	ensureDirectoryExistence(outDir);
 	const fileName = `${outDir}/${baseName}.ts`;
 
 	const S: string[] = [], E: string[] = [];
-	S.push('import { Literal } from "@/token_type"');
-	S.push('import { Token } from "@/token"');
+	imports.forEach((i: string) => {
+		const [what, from] = i.split(':')
+		S.push(`import { ${what} } from "@/${from}"`);
+	});
 	S.push(''); // newline
 	defineVisitor(S, baseName, types)
-	S.push(`class ${baseName} {`);
-	S.push(`  accept(visitor: ${baseName}Visitor): Literal {\nconsole.error("Called on main class! Not implemented");\nreturn null;\n};`);
+	S.push(`abstract class ${baseName} {`);
+	S.push(`  abstract accept<T>(visitor: ${baseName}Visitor<T>): T;`);
 	S.push('}');
 
 	E.push(baseName, `${baseName}Visitor`)
 
 	types.forEach(type => {
 		const [className, fields] = type.split(':').map(s => s.trim());
-		defineType(S, baseName, className, fields.split(',').map(f => f.trim()));
+		defineType(S, baseName, className, fields.length ? fields.split(',').map(f => f.trim()) : []);
 		// E.push(className);
 		E.push(`${baseName}${className}`);
 	});
 
 	S.push('') // newline
-	S.push(`class ${baseName}Error extends ${baseName} {};`);
-	S.push('') // newline
-	E.push(`${baseName}Error`);
+	// S.push(`class ${baseName}Error extends ${baseName} { accept<null> (visitor: ${baseName}Visitor<null>): null { return null; } };`);
+	// S.push('') // newline
+	// E.push(`${baseName}Error`);
 
 	S.push(`export {\n  ${E.join('\n, ')}\n};`);
 
@@ -98,6 +100,22 @@ const main = (argv: string[]) => {
 			"Grouping: Expr expression",
 			"Literal:  Literal value",
 			"Unary:    Token operator, Expr right",
+			"Error:",
+		], [
+			"Token:token",
+			"Literal:token_type"
+		]);
+
+	defineAst(
+		outDir,
+		"Stmt",
+		[
+			"Expression:  Expr expression",
+			"Print:   		Expr expression",
+			"Error:",
+		], [
+			"Expr:ast/Expr",
+			"Token:token"
 		]);
 }
 

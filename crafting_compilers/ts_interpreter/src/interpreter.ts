@@ -20,7 +20,7 @@ class RuntimeError extends Error {
 	}
 }
 
-class Interpreter implements ExprVisitor {
+class Interpreter implements ExprVisitor<Literal> {
 	interpret(expr: Expr) {
 		try {
 			const value = this.evaluate(expr);
@@ -35,6 +35,10 @@ class Interpreter implements ExprVisitor {
 			// Unknown error -> Exit
 			throw new Error(err as string);
 		}
+	}
+
+	visitErrorExpr(expr: ExprError): Literal {
+		return null;
 	}
 
 	visitLiteralExpr(expr: ExprLiteral): Literal {
