@@ -7,8 +7,8 @@ interface Values {
 }
 
 class Environment {
-	values: Values = {};
-	enclosing: Environment | null;
+	private values: Values = {};
+	private enclosing: Environment | null;
 
 	constructor(enclosing?: Environment) {
 		if (!enclosing) {

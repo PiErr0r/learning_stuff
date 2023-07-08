@@ -30,7 +30,7 @@ class JLOX {
 		}
 	}
 
-	runPrompt() {
+	private runPrompt() {
 		// create stream reader
 		const readline = require('readline').createInterface({
 			input: process.stdin,
@@ -46,7 +46,7 @@ class JLOX {
 		});
 	}
 
-	runFile(filename: string) {
+	private runFile(filename: string) {
 		try {
 			const data = fs.readFileSync(filename, 'utf8');
 			this.run(data);
@@ -58,7 +58,7 @@ class JLOX {
 		}
 	}
 
-	run(data: string) {
+	private run(data: string) {
 		const scanner = new Scanner(data);
 		const tokens = scanner.scanTokens();
 		const parser = new Parser(tokens);

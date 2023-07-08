@@ -6,9 +6,11 @@ interface StmtVisitor<T> {
   visitBlockStmt: (stmt: StmtBlock) => T;
   visitBreakStmt: (stmt: StmtBreak) => T;
   visitContinueStmt: (stmt: StmtContinue) => T;
-  visitIfStmt: (stmt: StmtIf) => T;
   visitExpressionStmt: (stmt: StmtExpression) => T;
+  visitFunctionStmt: (stmt: StmtFunction) => T;
+  visitIfStmt: (stmt: StmtIf) => T;
   visitPrintStmt: (stmt: StmtPrint) => T;
+  visitReturnStmt: (stmt: StmtReturn) => T;
   visitVarStmt: (stmt: StmtVar) => T;
   visitWhileStmt: (stmt: StmtWhile) => T;
   visitErrorStmt: (stmt: StmtError) => T;
@@ -50,6 +52,34 @@ class StmtContinue extends Stmt {
 }
 
 
+class StmtExpression extends Stmt {
+  expression: Expr;
+  constructor(expression: Expr) {
+    super();
+    this.expression = expression;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitExpressionStmt(this);
+  }
+}
+
+
+class StmtFunction extends Stmt {
+  name: Token;
+  params: Token[];
+  body: Stmt[];
+  constructor(name: Token, params: Token[], body: Stmt[]) {
+    super();
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitFunctionStmt(this);
+  }
+}
+
+
 class StmtIf extends Stmt {
   condition: Expr;
   thenBranch: Stmt;
@@ -66,18 +96,6 @@ class StmtIf extends Stmt {
 }
 
 
-class StmtExpression extends Stmt {
-  expression: Expr;
-  constructor(expression: Expr) {
-    super();
-    this.expression = expression;
-  }
-  accept<T>(visitor: StmtVisitor<T>): T {
-    return visitor.visitExpressionStmt(this);
-  }
-}
-
-
 class StmtPrint extends Stmt {
   expression: Expr;
   constructor(expression: Expr) {
@@ -86,6 +104,20 @@ class StmtPrint extends Stmt {
   }
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+
+class StmtReturn extends Stmt {
+  keyword: Token;
+  value: Expr | null;
+  constructor(keyword: Token, value: Expr | null) {
+    super();
+    this.keyword = keyword;
+    this.value = value;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitReturnStmt(this);
   }
 }
 
@@ -138,9 +170,11 @@ export {
 , StmtBlock
 , StmtBreak
 , StmtContinue
-, StmtIf
 , StmtExpression
+, StmtFunction
+, StmtIf
 , StmtPrint
+, StmtReturn
 , StmtVar
 , StmtWhile
 , StmtError

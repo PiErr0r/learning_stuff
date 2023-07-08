@@ -4,6 +4,7 @@ import {
 , ExprVisitor
 , ExprAssign
 , ExprBinary
+, ExprCall
 , ExprGrouping
 , ExprLiteral
 , ExprLogical
@@ -20,21 +21,37 @@ import {
 , StmtContinue
 , StmtIf
 , StmtExpression
+, StmtFunction
 , StmtPrint
+, StmtReturn
 , StmtVar
 , StmtWhile
 } from '@/ast/Stmt';
+import { LoxCallable, LoxFunction, instanceofLoxCallable } from "@/lox_callable";
 import { Literal, TokenType } from '@/token_type';
 import { Token } from '@/token';
 import { Environment } from '@/environment';
+import { Return } from "@/return";
 import { RuntimeError } from '@/errors';
 
 class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
-	private environment = new Environment();
+	globals = new Environment();
+	private environment = this.globals;
 	private REPL = false;
 	private inStmt = 0;
 	private shouldBreak = false;
 	private shouldContinue = false;
+
+	constructor() {
+		this.globals.define('clock', new class implements LoxCallable {
+			readonly discriminator = "LoxCallable";
+			arity() { return 0; }
+			call(interpreter: Interpreter, args: Literal[]): number {
+				return Date.now() / 1000;
+			}
+			toString() { return "<native fn>"; }
+		}(), true);
+	}
 	
 	interpret(statements: Stmt[]) {
 		try {
@@ -59,29 +76,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		this.REPL = true;
 	}
 
-	execute(statement: Stmt) {
-		if (statement instanceof StmtBreak) this.shouldBreak = true;
-		if (statement instanceof StmtContinue) this.shouldContinue = true;
-		if (this.shouldBreak || this.shouldContinue) return;
-		statement.accept(this);
-	}
-
-	executeBlock(statements: Stmt[], environment: Environment) {
-		const previous = this.environment;
-		try {
-			this.environment = environment;
-			statements.forEach((stmt, i) => {
-				if (stmt instanceof StmtBreak && !this.shouldContinue) this.shouldBreak = true;
-				if (stmt instanceof StmtContinue && !this.shouldBreak) this.shouldContinue = true;
-				if (this.shouldBreak) return;
-				if (this.shouldContinue) return;
-				this.execute(stmt);
-			});
-		} finally {
-			this.environment = previous;
-		}
-	}
-
 	visitErrorStmt(statement: StmtError) {}
 	visitBreakStmt(statement: StmtBreak) {}
 	visitContinueStmt(statement: StmtContinue) {}
@@ -92,6 +86,22 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		--this.inStmt;
 	}
 
+	visitExpressionStmt(statement: StmtExpression) {
+		++this.inStmt;
+		const value = this.evaluate(statement.expression)
+		--this.inStmt;
+		if (this.REPL && this.inStmt === 0 && !(statement.expression instanceof ExprAssign)) {
+			process.stdout.write(`${value}\n`);
+		}
+	}
+
+	visitFunctionStmt(statement: StmtFunction) {
+		++this.inStmt;
+		const fn = new LoxFunction(statement, this.environment);
+		this.environment.define(statement.name.lexeme, fn, true);
+		--this.inStmt;
+	}
+
 	visitIfStmt(statement: StmtIf) {
 		++this.inStmt;
 		if (this.isTruthy(this.evaluate(statement.condition))) {
@@ -99,6 +109,23 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		} else if (statement.elseBranch !== null) {
 			this.execute(statement.elseBranch);
 		}
+		--this.inStmt;
+	}
+
+	visitPrintStmt(statement: StmtPrint) {
+		++this.inStmt;
+		const value = this.evaluate(statement.expression);
+		process.stdout.write(this.stringify(value));
+		process.stdout.write("\n");
+		--this.inStmt;
+	}
+
+	visitReturnStmt(statement: StmtReturn) {
+		++this.inStmt;
+		const value = statement.value !== null
+			? this.evaluate(statement.value)
+			: null;
+		throw new Return(value);
 		--this.inStmt;
 	}
 
@@ -124,21 +151,8 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		--this.inStmt;
 	}
 
-	visitPrintStmt(statement: StmtPrint) {
-		++this.inStmt;
-		const value = this.evaluate(statement.expression);
-		process.stdout.write(this.stringify(value));
-		process.stdout.write("\n");
-		--this.inStmt;
-	}
-
-	visitExpressionStmt(statement: StmtExpression) {
-		++this.inStmt;
-		const value = this.evaluate(statement.expression)
-		--this.inStmt;
-		if (this.REPL && this.inStmt === 0 && !(statement.expression instanceof ExprAssign)) {
-			process.stdout.write(`${value}\n`);
-		}
+	visitErrorExpr(expr: ExprError): Literal {
+		return null;
 	}
 
 	visitAssignExpr(expr: ExprAssign): Literal {
@@ -147,42 +161,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		return value;
 	}
 
-	visitVariableExpr(expr: ExprVariable): Literal {
-		return this.environment.get(expr.name);
-	}
-
-	visitErrorExpr(expr: ExprError): Literal {
-		return null;
-	}
-
-	visitLiteralExpr(expr: ExprLiteral): Literal {
-		return expr.value;
-	}
-
-	visitLogicalExpr(expr: ExprLogical): Literal {
-		const left = this.evaluate(expr.left);
-		if (expr.operator.type === TokenType.OR) {
-			if (this.isTruthy(left)) return left;
-		} else {
-			if (!this.isTruthy(left)) return left;
-		}
-		return this.evaluate(expr.right);
-	}
-
-	visitGroupingExpr(expr: ExprGrouping): Literal {
-		return this.evaluate(expr.expression);
-	}
-
-	visitUnaryExpr(expr: ExprUnary): Literal {
-		const right = this.evaluate(expr.right);
-
-		switch (expr.operator.type) {
-			case TokenType.BANG: return !this.isTruthy(right);
-			case TokenType.MINUS: return -this.double(right, expr);
-		}
-		// Unreachable!
-		return null;
-	}
 
 	visitBinaryExpr(expr: ExprBinary): Literal | never {
 		const left = this.evaluate(expr.left);
@@ -242,6 +220,38 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		return null;
 	}
 
+	visitCallExpr(expr: ExprCall): Literal {
+		const callee = this.evaluate(expr.callee);
+		const args = expr.args.map(arg => this.evaluate(arg));
+
+		if (!instanceofLoxCallable(callee)) {
+			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+		}
+
+		const fn = callee as LoxCallable;
+		if (args.length !== fn.arity()) {
+			throw new RuntimeError(expr.paren, `Expected ${fn.arity()} arguments but got ${args.length}.`);
+		}
+		return fn.call(this, args);
+	}
+
+	visitGroupingExpr(expr: ExprGrouping): Literal {
+		return this.evaluate(expr.expression);
+	}
+	visitLiteralExpr(expr: ExprLiteral): Literal {
+		return expr.value;
+	}
+
+	visitLogicalExpr(expr: ExprLogical): Literal {
+		const left = this.evaluate(expr.left);
+		if (expr.operator.type === TokenType.OR) {
+			if (this.isTruthy(left)) return left;
+		} else {
+			if (!this.isTruthy(left)) return left;
+		}
+		return this.evaluate(expr.right);
+	}
+
 	visitTernaryExpr(expr: ExprTernary): Literal {
 		const condition = this.evaluate(expr.condition);
 		if (this.isTruthy(condition)) {
@@ -251,35 +261,73 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		}
 	}
 
-	isTruthy(obj: Literal ): boolean {
-		if (obj === null) return false;
-		if (typeof obj === 'boolean') return obj;
-		return true;
+	visitUnaryExpr(expr: ExprUnary): Literal {
+		const right = this.evaluate(expr.right);
+
+		switch (expr.operator.type) {
+			case TokenType.BANG: return !this.isTruthy(right);
+			case TokenType.MINUS: return -this.double(right, expr);
+		}
+		// Unreachable!
+		return null;
 	}
 
-	isEqual(a: Literal, b: Literal): boolean {
-		if (a === null && b === null) return true;
-		if (a === null) return false;
-		return a === b;
+	visitVariableExpr(expr: ExprVariable): Literal {
+		return this.environment.get(expr.name);
 	}
 
-	evaluate(expr: Expr): Literal {
+	execute(statement: Stmt) {
+		if (statement instanceof StmtBreak) this.shouldBreak = true;
+		if (statement instanceof StmtContinue) this.shouldContinue = true;
+		if (this.shouldBreak || this.shouldContinue) return;
+		statement.accept(this);
+	}
+
+	 executeBlock(statements: Stmt[], environment: Environment) {
+		const previous = this.environment;
+		try {
+			this.environment = environment;
+			statements.forEach((stmt, i) => {
+				if (stmt instanceof StmtBreak && !this.shouldContinue) this.shouldBreak = true;
+				if (stmt instanceof StmtContinue && !this.shouldBreak) this.shouldContinue = true;
+				if (this.shouldBreak) return;
+				if (this.shouldContinue) return;
+				this.execute(stmt);
+			});
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	 evaluate(expr: Expr): Literal {
 		return expr.accept(this);
 	}
 
-	double(n: Literal, expr: ExprBinary | ExprUnary): number {
+	private double(n: Literal, expr: ExprBinary | ExprUnary): number {
 		if (!this.isNumeric(n)) {
 			throw new RuntimeError(expr.operator, "Operand must be a number!");
 		}
 		return parseFloat(n as string);
 	}
 
-	isNumeric(value: Literal): boolean {
+	private isEqual(a: Literal, b: Literal): boolean {
+		if (a === null && b === null) return true;
+		if (a === null) return false;
+		return a === b;
+	}
+
+	private isNumeric(value: Literal): boolean {
 		if (value === null) return false;
         return /^-?\d+(\.\d+)?$/.test(value as string);
 	}
 
-	stringify(value: Literal): string {
+	private isTruthy(obj: Literal ): boolean {
+		if (obj === null) return false;
+		if (typeof obj === 'boolean') return obj;
+		return true;
+	}
+
+	private stringify(value: Literal): string {
 		if (value === null) return 'nil';
 		return value.toString();
 	}

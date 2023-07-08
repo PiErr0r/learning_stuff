@@ -5,6 +5,7 @@ import { Literal } from "@/token_type"
 interface ExprVisitor<T> {
   visitAssignExpr: (expr: ExprAssign) => T;
   visitBinaryExpr: (expr: ExprBinary) => T;
+  visitCallExpr: (expr: ExprCall) => T;
   visitGroupingExpr: (expr: ExprGrouping) => T;
   visitLiteralExpr: (expr: ExprLiteral) => T;
   visitLogicalExpr: (expr: ExprLogical) => T;
@@ -44,6 +45,22 @@ class ExprBinary extends Expr {
   }
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitBinaryExpr(this);
+  }
+}
+
+
+class ExprCall extends Expr {
+  callee: Expr;
+  paren: Token;
+  args: Expr[];
+  constructor(callee: Expr, paren: Token, args: Expr[]) {
+    super();
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitCallExpr(this);
   }
 }
 
@@ -145,6 +162,7 @@ export {
 , ExprVisitor
 , ExprAssign
 , ExprBinary
+, ExprCall
 , ExprGrouping
 , ExprLiteral
 , ExprLogical

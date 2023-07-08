@@ -6,6 +6,7 @@ import {
 , ExprVisitor
 , ExprAssign
 , ExprBinary
+, ExprCall
 , ExprGrouping
 , ExprLiteral
 , ExprLogical
@@ -20,17 +21,19 @@ import {
 , StmtBlock
 , StmtBreak
 , StmtContinue
+, StmtFunction
 , StmtIf
 , StmtExpression
 , StmtPrint
+, StmtReturn
 , StmtVar
 , StmtWhile
 } from '@/ast/Stmt';
 import { ParseError, CSyntaxError } from "@/errors";
 
 class Parser {
-	current = 0;
-	tokens: Token[];
+	private current = 0;
+	private tokens: Token[];
 	private inBlock = 0;
 	private inLoop = 0;
 	constructor(tokens: Token[]) {
@@ -45,11 +48,10 @@ class Parser {
 		return statements;
 	}
 
-	declaration(): Stmt | never {
+	private declaration(): Stmt | never {
 		try {
-			if (this.match(TokenType.VAR)) {
-				return this.varDeclaration();
-			}
+			if (this.match(TokenType.FUN)) return this.funDeclaration("function");
+			if (this.match(TokenType.VAR)) return this.varDeclaration();
 			return this.statement();
 		} catch (err) {
 			if (err instanceof ParseError) {
@@ -61,7 +63,26 @@ class Parser {
 		}	
 	}
 
-	varDeclaration(): Stmt {
+	private funDeclaration(kind: string): Stmt {
+		const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+		this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+		const params: Token[] = []
+		if (!this.check(TokenType.RIGHT_PAREN)) {
+			do {
+				if (params.length > 255) {
+					this.error(this.peek(), "Can't have more than 255 parameters.");
+				}
+				params.push(this.consume(TokenType.IDENTIFIER, "Expect parameter name."));
+			} while (this.match(TokenType.COMMA));
+		}
+		this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters");
+
+		this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+		const body = this.block();
+		return new StmtFunction(name, params, body);
+	}
+
+	private varDeclaration(): Stmt {
 		const name = this.consume(TokenType.IDENTIFIER, "Expect variable name");
 		const hasInit = this.match(TokenType.EQUAL);
 		const initializer = hasInit
@@ -71,19 +92,20 @@ class Parser {
 		return new StmtVar(name, initializer, hasInit)
 	}
 
-	statement(): Stmt {
+	private statement(): Stmt {
 		if (this.match(TokenType.BREAK)) return this.breakStatement();
 		if (this.match(TokenType.CONTINUE)) return this.continueStatement();
 		if (this.match(TokenType.FOR)) return this.forStatement();
 		if (this.match(TokenType.IF)) return this.ifStatement();
 		if (this.match(TokenType.PRINT)) return this.printStatement();
+		if (this.match(TokenType.RETURN)) return this.returnStatement();
 		if (this.match(TokenType.WHILE)) return this.whileStatement();
 		if (this.match(TokenType.LEFT_BRACE)) return new StmtBlock(this.block());
 
 		return this.expressionStatement();
 	}
 
-	block(): Stmt[] {
+	private block(): Stmt[] {
 		++this.inBlock;
 		const statements: Stmt[] = [];
 
@@ -97,7 +119,7 @@ class Parser {
 		return statements;
 	}
 
-	breakStatement(): Stmt {
+	private breakStatement(): Stmt {
 		if (this.inLoop === 0) {
 			this.syntaxError(this.previous(), "break used outside of loop body.");			
 		}
@@ -105,12 +127,12 @@ class Parser {
 		return new StmtBreak();
 	}
 
-	continueStatement(): Stmt {
+	private continueStatement(): Stmt {
 		this.consume(TokenType.SEMICOLON, "Expect ';' after continue.");
 		return new StmtContinue();
 	}
 
-	forStatement(): Stmt {
+	private forStatement(): Stmt {
 		++this.inLoop;
 		this.consume(TokenType.LEFT_PAREN, "Expect ')' after for.");
 		let initializer: Stmt | null = null;
@@ -151,7 +173,7 @@ class Parser {
 		return body;
 	}
 
-	ifStatement(): Stmt {
+	private ifStatement(): Stmt {
 		this.consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
 		const condition = this.expression();
 		this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
@@ -161,13 +183,22 @@ class Parser {
 		return new StmtIf(condition, thenBranch, elseBranch);
 	}
 
-	printStatement(): Stmt {
+	private printStatement(): Stmt {
 		const value = this.batch();
 		this.consume(TokenType.SEMICOLON, "Expect ';'' after value;");
 		return new StmtPrint(value);
 	}
 
-	whileStatement(): Stmt {
+	private returnStatement(): Stmt {
+		const keyword = this.previous();
+		const value = this.check(TokenType.SEMICOLON)
+			? null
+			: this.expression();
+		this.consume(TokenType.SEMICOLON, "Expect ';' after return statement.");
+		return new StmtReturn(keyword, value);
+	}
+
+	private whileStatement(): Stmt {
 		++this.inLoop;
 		this.consume(TokenType.LEFT_PAREN, "Expect '(' after while.");
 		const condition = this.expression();
@@ -177,13 +208,13 @@ class Parser {
 		return new StmtWhile(condition, body);
 	}
 
-	expressionStatement(): Stmt {
+	private expressionStatement(): Stmt {
 		const expr = this.batch();
 		this.consume(TokenType.SEMICOLON, "Expect ';'' after expression;");
 		return new StmtExpression(expr);		
 	}
 
-	batch(): Expr { // batch -> expression ( (',') expression )*
+	private batch(): Expr { // batch -> expression ( (',') expression )*
 		let expr = this.expression();
 
 		while (this.match(TokenType.COMMA)) {
@@ -193,7 +224,7 @@ class Parser {
 		return expr;
 	}
 
-	expression(): Expr | never {
+	private expression(): Expr | never {
 		let expr = this.or();
 
 		if (this.match(TokenType.EQUAL)) {
@@ -219,7 +250,7 @@ class Parser {
 		return expr;
 	}
 
-	or(): Expr {
+	private or(): Expr {
 		let expr = this.and();
 
 		while (this.match(TokenType.OR)) {
@@ -231,7 +262,7 @@ class Parser {
 		return expr;
 	}
 
-	and(): Expr {
+	private and(): Expr {
 		let expr = this.equality();
 		
 		while (this.match(TokenType.AND)) {
@@ -243,7 +274,7 @@ class Parser {
 		return expr;
 	}
 
-	equality(): Expr {
+	private equality(): Expr {
 		let expr = this.comparison();
 
 		while (this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
@@ -255,7 +286,7 @@ class Parser {
 		return expr;
 	}
 
-	comparison(): Expr {
+	private comparison(): Expr {
 		let expr = this.term();
 
 		while (this.match(TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL)) {
@@ -267,7 +298,7 @@ class Parser {
 		return expr;
 	}
 
-	term(): Expr {
+	private term(): Expr {
 		let expr = this.factor();
 
 		while (this.match(TokenType.PLUS, TokenType.MINUS)) {
@@ -279,7 +310,7 @@ class Parser {
 		return expr;
 	}
 
-	factor(): Expr {
+	private factor(): Expr {
 		let expr = this.unary();
 
 		while (this.match(TokenType.STAR, TokenType.SLASH)) {
@@ -291,17 +322,46 @@ class Parser {
 		return expr;
 	}
 
-	unary(): Expr {
+	private unary(): Expr {
 		if (this.match(TokenType.BANG, TokenType.MINUS)) {
 			const operator = this.previous();
 			const right = this.unary();
 			return new ExprUnary(operator, right);
 		}
 
-		return this.primary();
+		return this.call();
 	}
 
-	primary(): Expr {
+	private call(): Expr {
+		let expr = this.primary();
+
+		while (true) {
+			if (this.match(TokenType.LEFT_PAREN)) {
+				expr = this.finishCall(expr);
+			} else {
+				break;
+			}
+		}
+
+		return expr;
+	}
+
+	private finishCall(callee: Expr): Expr {
+		const args: Expr[] = [];
+		if (!this.check(TokenType.RIGHT_PAREN)) {
+			do {
+				if (args.length >= 255) {
+					this.error(this.peek(), "Can't have more than 255 arguments");
+				}
+				args.push(this.expression());
+			} while (this.match(TokenType.COMMA));
+		}
+		const paren = this.consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments.");
+
+		return new ExprCall(callee, paren, args);
+	}
+
+	private primary(): Expr {
 		if (this.match(TokenType.FALSE)) return new ExprLiteral(false); 
 		if (this.match(TokenType.TRUE)) return new ExprLiteral(true); 
 		if (this.match(TokenType.NIL)) return new ExprLiteral(null);
@@ -324,7 +384,7 @@ class Parser {
 		return new ExprError();
 	}
 
-	match(...types: Type[]): boolean {
+	private match(...types: Type[]): boolean {
 		for (let i = 0; i < types.length; ++i) {
 			if (this.check(types[i])) {
 				this.advance();
@@ -334,34 +394,34 @@ class Parser {
 		return false;
 	}
 
-	consume(type: Type, message: string): Token | never {
+	private consume(type: Type, message: string): Token | never {
 		if (this.check(type)) return this.advance();
 		this.error(this.peek(), message);
 	}
 
-	check(type: Type): boolean {
+	private check(type: Type): boolean {
 		if (this.isAtEnd()) return false;
 		return this.peek().type === type;
 	}
 
-	advance(): Token {
+	private advance(): Token {
 		if (!this.isAtEnd()) ++this.current;
 		return this.previous();
 	}
 
-	isAtEnd(): boolean {
+	private isAtEnd(): boolean {
 		return this.peek().type === TokenType.EOF;
 	}
 
-	peek(): Token {
+	private peek(): Token {
 		return this.tokens[ this.current ];
 	}
 
-	previous(): Token {
+	private previous(): Token {
 		return this.tokens[ this.current - 1 ];
 	}
 
-	error(token: Token, message: string): never {
+	private error(token: Token, message: string): never {
 		const { JLOX } = require('./jlox');
 		JLOX.error(token, message);
 		this.inBlock = 0;
@@ -369,7 +429,7 @@ class Parser {
 		throw new ParseError(message);
 	}
 
-	syntaxError(token: Token, message: string): never {
+	private syntaxError(token: Token, message: string): never {
 		const { JLOX } = require('./jlox');
 		JLOX.error(token, message);
 		this.inBlock = 0;
@@ -377,7 +437,7 @@ class Parser {
 		throw new CSyntaxError(message);	
 	}
 
-	synchronize() {
+	private synchronize() {
 		this.advance();
 
 		while (!this.isAtEnd()) {

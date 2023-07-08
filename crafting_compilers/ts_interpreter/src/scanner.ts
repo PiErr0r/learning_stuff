@@ -27,11 +27,11 @@ const keywords: Keywords = {
 };
 
 class Scanner {
-	source: string;
-	start = 0; // start of token pointer
-	current = 0; // current character
-	line = 1;
-	tokens: Token[] = [];
+	private source: string;
+	private start = 0; // start of token pointer
+	private current = 0; // current character
+	private line = 1;
+	private tokens: Token[] = [];
 	constructor(source: string) {
 		this.source = source;
 	}
@@ -45,7 +45,7 @@ class Scanner {
 		return this.tokens;
 	}
 
-	scanToken() {
+	private scanToken() {
 		const c = this.advance();
 		switch (c) {
 			case '(': this.addToken(TokenType.LEFT_PAREN); break;
@@ -104,26 +104,26 @@ class Scanner {
 		}
 	}
 
-	isAtEnd(): boolean {
+	private isAtEnd(): boolean {
 		// check if current pointer is out of file
 		return this.current >= this.source.length;
 	}
 
-	isDigit(c: string): boolean {
+	private isDigit(c: string): boolean {
 		return c >= '0' && c <= '9';
 	}
 
-	isAlpha(c: string): boolean {
+	private isAlpha(c: string): boolean {
 		return c === '_'
 		|| c >= 'a' && c <= 'z'
 		|| c >= 'A' && c <= 'Z';
 	}
 
-	isAlphaNumeric(c: string): boolean {
+	private isAlphaNumeric(c: string): boolean {
 		return this.isDigit(c) || this.isAlpha(c);
 	}
 
-	blockComment() {
+	private blockComment() {
 		// scan a block comment
 		while (this.peek() !== '*' && this.peekNext() !== '/' && !this.isAtEnd()) {
 			if (this.peek() === '\n') ++this.line;
@@ -140,7 +140,7 @@ class Scanner {
 		this.advance();
 	}
 
-	identifier() {
+	private identifier() {
 		// scan identifier
 		while(this.isAlphaNumeric(this.peek())) this.advance();
 		const text = this.source.slice(this.start, this.current);
@@ -149,7 +149,7 @@ class Scanner {
 		this.addToken(type);
 	}
 
-	number() {
+	private number() {
 		// scan number
 		while (this.isDigit(this.peek())) this.advance();
 		if (this.peek() === '.' && this.isDigit(this.peekNext())) {
@@ -159,7 +159,7 @@ class Scanner {
 		this._addToken(TokenType.NUMBER, parseFloat(this.source.slice(this.start, this.current)));
 	}
 
-	string() {
+	private string() {
 		// scan string
 		while (this.peek() !== '"' && !this.isAtEnd()) {
 			if (this.peek() === '\n') ++this.line;
@@ -175,19 +175,19 @@ class Scanner {
 		this._addToken(TokenType.STRING, value);
 	}
 
-	peek(): string {
+	private peek(): string {
 		// lookahead 1 character
 		if (this.isAtEnd()) return '\0';
 		return this.source[ this.current ];
 	}
 
-	peekNext(): string {
+	private peekNext(): string {
 		// lookahead 2 characters
 		if (this.current + 1 >= this.source.length) return '\0';
 		return this.source[ this.current + 1 ];
 	}
 
-	match(expected: string): boolean {
+	private match(expected: string): boolean {
 		// match next character
 		if (this.isAtEnd()) return false;
 		if (this.source[ this.current ] !== expected)
@@ -196,17 +196,17 @@ class Scanner {
 		return true;
 	}
 
-	advance(): string {
+	private advance(): string {
 		// move pointer one position ahead
 		return this.source[this.current++];
 	}
 
-	addToken(type: Type) {
+	private addToken(type: Type) {
 		// add token to list (single)
 		this._addToken(type, null);
 	}
 
-	_addToken(type: Type, literal: Literal) {
+	private _addToken(type: Type, literal: Literal) {
 		// add token to list with value
 		const text = this.source.slice(this.start, this.current);
 		this.tokens.push(new Token(type, text, literal, this.line));
