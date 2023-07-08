@@ -31,7 +31,7 @@ import { LoxCallable, LoxFunction, instanceofLoxCallable } from "@/lox_callable"
 import { Literal, TokenType } from '@/token_type';
 import { Token } from '@/token';
 import { Environment } from '@/environment';
-import { Return } from "@/return";
+import { Break, Continue, Return } from "@/exits";
 import { RuntimeError } from '@/errors';
 
 class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
@@ -39,8 +39,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	private environment = this.globals;
 	private REPL = false;
 	private inStmt = 0;
-	private shouldBreak = false;
-	private shouldContinue = false;
 
 	constructor() {
 		this.globals.define('clock', new class implements LoxCallable {
@@ -64,8 +62,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 				const message = "Can only add numbers or strings!";
 				JLOX.runtimeError(err.op, err.message);
 				this.inStmt = 0;
-				this.shouldBreak = false;
-				this.shouldContinue = false;
 			}
 			// Unknown error -> Exit
 			// throw new Error(err as string);
@@ -77,8 +73,12 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	}
 
 	visitErrorStmt(statement: StmtError) {}
-	visitBreakStmt(statement: StmtBreak) {}
-	visitContinueStmt(statement: StmtContinue) {}
+	visitBreakStmt(statement: StmtBreak) {
+		throw new Break();
+	}
+	visitContinueStmt(statement: StmtContinue) {
+		throw new Continue();
+	}
 
 	visitBlockStmt(statement: StmtBlock) {
 		++this.inStmt;
@@ -139,13 +139,15 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	visitWhileStmt(statement: StmtWhile) {
 		++this.inStmt;
 		while (this.isTruthy(this.evaluate(statement.condition))) {
-			this.shouldBreak = false;
-			this.shouldContinue = false;
-			this.execute(statement.body);
-			if (this.shouldBreak) break;
-			if (statement.isFor && this.shouldContinue) {
-				this.shouldContinue = false;
-				this.execute((statement.body as StmtBlock).statements[1]);
+			try {
+				this.execute(statement.body);
+			} catch (err) {
+				if (err instanceof Break) {
+					break;
+				}
+				if (err instanceof Continue && statement.isFor) {
+					this.execute((statement.body as StmtBlock).statements[1]);
+				}
 			}
 		}
 		--this.inStmt;
@@ -277,9 +279,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	}
 
 	execute(statement: Stmt) {
-		if (statement instanceof StmtBreak) this.shouldBreak = true;
-		if (statement instanceof StmtContinue) this.shouldContinue = true;
-		if (this.shouldBreak || this.shouldContinue) return;
 		statement.accept(this);
 	}
 
@@ -288,10 +287,6 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		try {
 			this.environment = environment;
 			statements.forEach((stmt, i) => {
-				if (stmt instanceof StmtBreak && !this.shouldContinue) this.shouldBreak = true;
-				if (stmt instanceof StmtContinue && !this.shouldBreak) this.shouldContinue = true;
-				if (this.shouldBreak) return;
-				if (this.shouldContinue) return;
 				this.execute(stmt);
 			});
 		} finally {

@@ -1,7 +1,7 @@
 import { Environment } from "@/environment";
 import { Interpreter } from "@/interpreter";
 import { Literal } from "@/token_type";
-import { Return } from "@/return";
+import { Return } from "@/exits";
 import { StmtFunction } from "@/ast/Stmt";
 
 interface LoxCallable {
