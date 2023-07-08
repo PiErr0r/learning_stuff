@@ -34,7 +34,7 @@ class LoxFunction implements LoxCallable {
 			if (err instanceof Return) {
 				return (err as Return).value;
 			}
-			throw new Error(`Uncaught exception ${err as string}`);
+			throw err;
 		}
 		return null;
 	}

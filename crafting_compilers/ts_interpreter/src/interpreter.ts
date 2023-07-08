@@ -6,6 +6,7 @@ import {
 , ExprBinary
 , ExprCall
 , ExprGrouping
+, ExprLambda
 , ExprLiteral
 , ExprLogical
 , ExprTernary
@@ -33,6 +34,7 @@ import { Token } from '@/token';
 import { Environment } from '@/environment';
 import { Break, Continue, Return } from "@/exits";
 import { RuntimeError } from '@/errors';
+import { randomString } from "@/helpers";
 
 class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	globals = new Environment();
@@ -145,9 +147,12 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 				if (err instanceof Break) {
 					break;
 				}
-				if (err instanceof Continue && statement.isFor) {
-					this.execute((statement.body as StmtBlock).statements[1]);
+				if (err instanceof Continue) {
+					if (statement.isFor)
+						this.execute((statement.body as StmtBlock).statements[1]);
+					continue;
 				}
+				throw err;
 			}
 		}
 		--this.inStmt;
@@ -240,6 +245,21 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	visitGroupingExpr(expr: ExprGrouping): Literal {
 		return this.evaluate(expr.expression);
 	}
+
+	visitLambdaExpr(expr: ExprLambda): Literal {
+		const name = randomString(10);
+		const fn = new LoxFunction(
+			new StmtFunction(
+				new Token(TokenType.IDENTIFIER, name, null, 0),
+				expr.params,
+				expr.body
+			),
+			this.environment
+		);
+		this.environment.define(name, fn, true);
+		return fn;
+	}
+
 	visitLiteralExpr(expr: ExprLiteral): Literal {
 		return expr.value;
 	}

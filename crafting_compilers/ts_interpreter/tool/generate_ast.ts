@@ -101,6 +101,7 @@ const main = (argv: string[]) => {
 			"Binary:   Expr left, Token operator, Expr right",
 			"Call:     Expr callee, Token paren, Expr[] args",
 			"Grouping: Expr expression",
+			"Lambda:   Token[] params, Stmt[] body",
 			"Literal:  Literal value",
 			"Logical:  Expr left, Token operator, Expr right",
 			"Ternary:  Expr condition, Expr resTrue, Expr resFalse",
@@ -108,8 +109,9 @@ const main = (argv: string[]) => {
 			"Variable: Token name",
 			"Error:",
 		], [
-			"Token:token",
-			"Literal:token_type"
+			"Literal:token_type",
+			"Stmt:ast/Stmt",
+			"Token:token"
 		]);
 
 	defineAst(

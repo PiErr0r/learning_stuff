@@ -1,5 +1,6 @@
-import { Token } from "@/token"
 import { Literal } from "@/token_type"
+import { Stmt } from "@/ast/Stmt"
+import { Token } from "@/token"
 
 
 interface ExprVisitor<T> {
@@ -7,6 +8,7 @@ interface ExprVisitor<T> {
   visitBinaryExpr: (expr: ExprBinary) => T;
   visitCallExpr: (expr: ExprCall) => T;
   visitGroupingExpr: (expr: ExprGrouping) => T;
+  visitLambdaExpr: (expr: ExprLambda) => T;
   visitLiteralExpr: (expr: ExprLiteral) => T;
   visitLogicalExpr: (expr: ExprLogical) => T;
   visitTernaryExpr: (expr: ExprTernary) => T;
@@ -73,6 +75,20 @@ class ExprGrouping extends Expr {
   }
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitGroupingExpr(this);
+  }
+}
+
+
+class ExprLambda extends Expr {
+  params: Token[];
+  body: Stmt[];
+  constructor(params: Token[], body: Stmt[]) {
+    super();
+    this.params = params;
+    this.body = body;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitLambdaExpr(this);
   }
 }
 
@@ -164,6 +180,7 @@ export {
 , ExprBinary
 , ExprCall
 , ExprGrouping
+, ExprLambda
 , ExprLiteral
 , ExprLogical
 , ExprTernary

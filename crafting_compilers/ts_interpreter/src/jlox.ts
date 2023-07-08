@@ -71,7 +71,7 @@ class JLOX {
 	}
 
 	static runtimeError(op: Token, message: string) {
-		process.stdout.write(`${message}\n[line ${op.line}]`);
+		process.stdout.write(`[line ${op.line}] ${message}\n`);
 		HAD_RUNTIME_ERROR = true;
 	}
 

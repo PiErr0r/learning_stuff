@@ -8,6 +8,7 @@ import {
 , ExprBinary
 , ExprCall
 , ExprGrouping
+, ExprLambda
 , ExprLiteral
 , ExprLogical
 , ExprTernary
@@ -250,6 +251,24 @@ class Parser {
 		return expr;
 	}
 
+	private lambdaExpression(): Expr {
+		this.consume(TokenType.LEFT_PAREN, `Expect '(' after fun.`);
+		const params: Token[] = []
+		if (!this.check(TokenType.RIGHT_PAREN)) {
+			do {
+				if (params.length > 255) {
+					this.error(this.peek(), "Can't have more than 255 parameters.");
+				}
+				params.push(this.consume(TokenType.IDENTIFIER, "Expect parameter name."));
+			} while (this.match(TokenType.COMMA));
+		}
+		this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters");
+
+		this.consume(TokenType.LEFT_BRACE, `Expect '{' before lambda body.`);
+		const body = this.block();
+		return new ExprLambda(params, body);	
+	}
+
 	private or(): Expr {
 		let expr = this.and();
 
@@ -362,6 +381,7 @@ class Parser {
 	}
 
 	private primary(): Expr {
+		if (this.match(TokenType.FUN)) return this.lambdaExpression();
 		if (this.match(TokenType.FALSE)) return new ExprLiteral(false); 
 		if (this.match(TokenType.TRUE)) return new ExprLiteral(true); 
 		if (this.match(TokenType.NIL)) return new ExprLiteral(null);
