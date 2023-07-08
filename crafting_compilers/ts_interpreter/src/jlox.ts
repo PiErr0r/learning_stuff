@@ -6,6 +6,7 @@ import { Stmt } from "@/ast/Stmt";
 
 import { Interpreter } from '@/interpreter';
 import { Parser } from '@/parser';
+import { Resolver } from '@/resolver';
 import { Scanner } from '@/scanner';
 import { Token } from '@/token';
 import { TokenType } from '@/token_type';
@@ -66,7 +67,10 @@ class JLOX {
 
 		if (HAD_ERROR) return;
 		if (HAD_RUNTIME_ERROR) return;
-
+		const resolver = new Resolver(this.interpreter);
+		resolver.resolve(statements);
+		
+		if (HAD_ERROR) return;
 		this.interpreter.interpret(statements);
 	}
 

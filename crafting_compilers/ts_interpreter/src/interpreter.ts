@@ -38,6 +38,7 @@ import { randomString } from "@/helpers";
 
 class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	globals = new Environment();
+	private locals = new Map<Expr, number>();
 	private environment = this.globals;
 	private REPL = false;
 	private inStmt = 0;
@@ -164,7 +165,12 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 
 	visitAssignExpr(expr: ExprAssign): Literal {
 		const value = this.evaluate(expr.value);
-		this.environment.assign(expr.name, value);
+		const distance = this.locals.get(expr);
+		if (distance !== undefined) {
+			this.environment.assignAt(distance, expr.name, value);
+		} else {
+			this.globals.assign(expr.name, value);
+		}
 		return value;
 	}
 
@@ -295,14 +301,27 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 	}
 
 	visitVariableExpr(expr: ExprVariable): Literal {
-		return this.environment.get(expr.name);
+		return this.lookUpVariable(expr.name, expr);
+	}
+
+	lookUpVariable(name: Token, expr: Expr) {
+		const distance = this.locals.get(expr);
+		if (distance !== undefined) {
+			return this.environment.getAt(distance, name);
+		} else {
+			return this.globals.get(name);
+		}
 	}
 
 	execute(statement: Stmt) {
 		statement.accept(this);
 	}
 
-	 executeBlock(statements: Stmt[], environment: Environment) {
+	resolve(expr: Expr, depth: number) {
+		this.locals.set(expr, depth);
+	}
+
+	executeBlock(statements: Stmt[], environment: Environment) {
 		const previous = this.environment;
 		try {
 			this.environment = environment;
