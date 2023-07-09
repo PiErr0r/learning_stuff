@@ -5,6 +5,7 @@ import { Token } from "@/token"
 interface StmtVisitor<T> {
   visitBlockStmt: (stmt: StmtBlock) => T;
   visitBreakStmt: (stmt: StmtBreak) => T;
+  visitClassStmt: (stmt: StmtClass) => T;
   visitContinueStmt: (stmt: StmtContinue) => T;
   visitExpressionStmt: (stmt: StmtExpression) => T;
   visitFunctionStmt: (stmt: StmtFunction) => T;
@@ -38,6 +39,20 @@ class StmtBreak extends Stmt {
   }
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitBreakStmt(this);
+  }
+}
+
+
+class StmtClass extends Stmt {
+  name: Token;
+  methods: StmtFunction[];
+  constructor(name: Token, methods: StmtFunction[]) {
+    super();
+    this.name = name;
+    this.methods = methods;
+  }
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitClassStmt(this);
   }
 }
 
@@ -169,6 +184,7 @@ export {
 , StmtVisitor
 , StmtBlock
 , StmtBreak
+, StmtClass
 , StmtContinue
 , StmtExpression
 , StmtFunction

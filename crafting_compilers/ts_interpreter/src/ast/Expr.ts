@@ -7,11 +7,14 @@ interface ExprVisitor<T> {
   visitAssignExpr: (expr: ExprAssign) => T;
   visitBinaryExpr: (expr: ExprBinary) => T;
   visitCallExpr: (expr: ExprCall) => T;
+  visitGetExpr: (expr: ExprGet) => T;
   visitGroupingExpr: (expr: ExprGrouping) => T;
   visitLambdaExpr: (expr: ExprLambda) => T;
   visitLiteralExpr: (expr: ExprLiteral) => T;
   visitLogicalExpr: (expr: ExprLogical) => T;
+  visitSetExpr: (expr: ExprSet) => T;
   visitTernaryExpr: (expr: ExprTernary) => T;
+  visitThisExpr: (expr: ExprThis) => T;
   visitUnaryExpr: (expr: ExprUnary) => T;
   visitVariableExpr: (expr: ExprVariable) => T;
   visitErrorExpr: (expr: ExprError) => T;
@@ -63,6 +66,20 @@ class ExprCall extends Expr {
   }
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitCallExpr(this);
+  }
+}
+
+
+class ExprGet extends Expr {
+  obj: Expr;
+  name: Token;
+  constructor(obj: Expr, name: Token) {
+    super();
+    this.obj = obj;
+    this.name = name;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitGetExpr(this);
   }
 }
 
@@ -121,6 +138,22 @@ class ExprLogical extends Expr {
 }
 
 
+class ExprSet extends Expr {
+  obj: Expr;
+  name: Token;
+  value: Expr;
+  constructor(obj: Expr, name: Token, value: Expr) {
+    super();
+    this.obj = obj;
+    this.name = name;
+    this.value = value;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitSetExpr(this);
+  }
+}
+
+
 class ExprTernary extends Expr {
   condition: Expr;
   resTrue: Expr;
@@ -133,6 +166,18 @@ class ExprTernary extends Expr {
   }
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitTernaryExpr(this);
+  }
+}
+
+
+class ExprThis extends Expr {
+  keyword: Token;
+  constructor(keyword: Token) {
+    super();
+    this.keyword = keyword;
+  }
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitThisExpr(this);
   }
 }
 
@@ -179,11 +224,14 @@ export {
 , ExprAssign
 , ExprBinary
 , ExprCall
+, ExprGet
 , ExprGrouping
 , ExprLambda
 , ExprLiteral
 , ExprLogical
+, ExprSet
 , ExprTernary
+, ExprThis
 , ExprUnary
 , ExprVariable
 , ExprError

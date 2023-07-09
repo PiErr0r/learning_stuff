@@ -7,11 +7,14 @@ import {
 , ExprAssign
 , ExprBinary
 , ExprCall
+, ExprGet
 , ExprGrouping
 , ExprLambda
 , ExprLiteral
 , ExprLogical
+, ExprSet
 , ExprTernary
+, ExprThis
 , ExprUnary
 , ExprVariable
 } from '@/ast/Expr';
@@ -21,6 +24,7 @@ import {
 , StmtVisitor
 , StmtBlock
 , StmtBreak
+, StmtClass
 , StmtContinue
 , StmtFunction
 , StmtIf
@@ -51,6 +55,7 @@ class Parser {
 
 	private declaration(): Stmt | never {
 		try {
+			if (this.match(TokenType.CLASS)) return this.classDeclaration();
 			if (this.match(TokenType.FUN)) return this.funDeclaration("function");
 			if (this.match(TokenType.VAR)) return this.varDeclaration();
 			return this.statement();
@@ -62,6 +67,17 @@ class Parser {
 			}
 			return new StmtError();
 		}	
+	}
+
+	private classDeclaration(): Stmt {
+		const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+		this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+		const methods: StmtFunction[] = [];
+		while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+			methods.push(this.funDeclaration('method') as StmtFunction);
+		}
+		this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body");
+		return new StmtClass(name, methods)
 	}
 
 	private funDeclaration(kind: string): Stmt {
@@ -233,8 +249,9 @@ class Parser {
 			const value = this.expression();
 
 			if (expr instanceof ExprVariable) {
-				const name = expr.name;
-				return new ExprAssign(name, value);
+				return new ExprAssign(expr.name, value);
+			} else if (expr instanceof ExprGet) {
+				return new ExprSet((expr as ExprGet).obj, expr.name, value);
 			}
 
 			this.error(equals, "Invalid assignment target.");
@@ -357,6 +374,9 @@ class Parser {
 		while (true) {
 			if (this.match(TokenType.LEFT_PAREN)) {
 				expr = this.finishCall(expr);
+			} else if (this.match(TokenType.DOT)) {
+				const name = this.consume(TokenType.IDENTIFIER, "Expect property name after '.'");
+				expr = new ExprGet(expr, name);
 			} else {
 				break;
 			}
@@ -388,6 +408,10 @@ class Parser {
 
 		if (this.match(TokenType.NUMBER, TokenType.STRING)) {
 			return new ExprLiteral(this.previous().literal);
+		}
+
+		if (this.match(TokenType.THIS)) {
+			return new ExprThis(this.previous());
 		}
 
 		if (this.match(TokenType.IDENTIFIER)) {

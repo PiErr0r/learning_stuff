@@ -1,6 +1,6 @@
-import { LoxCallable } from "@/lox_callable";
+import { LoxCallable, LoxInstance } from "@/lox_callable";
 
-type Literal = LoxCallable | boolean | number | string | null;
+type Literal = LoxInstance | LoxCallable | boolean | number | string | null;
 type Type = number;
 interface TT {
 	readonly [typeName: string]: Type

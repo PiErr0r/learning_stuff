@@ -5,11 +5,14 @@ import {
 , ExprAssign
 , ExprBinary
 , ExprCall
+, ExprGet
 , ExprGrouping
 , ExprLambda
 , ExprLiteral
 , ExprLogical
+, ExprSet
 , ExprTernary
+, ExprThis
 , ExprUnary
 , ExprVariable
 } from '@/ast/Expr';
@@ -19,6 +22,7 @@ import {
 , StmtVisitor
 , StmtBlock
 , StmtBreak
+, StmtClass
 , StmtContinue
 , StmtIf
 , StmtExpression
@@ -35,10 +39,18 @@ import { Token } from "@/token";
 enum FnType {
 	NONE,
 	FUNCTION,
+	INITIALIZER,
+	METHOD
+}
+
+enum ClassType {
+	NONE,
+	CLASS
 }
 
 // class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
+	private currentClass = ClassType.NONE;
 	private currentFn = FnType.NONE;
 	private interpreter: Interpreter;
 	private scopes: Stack<IMap<boolean>> = new Stack();
@@ -53,6 +65,22 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 	}
 
 	visitBreakStmt(stmt: StmtBreak) {};
+
+	visitClassStmt(stmt: StmtClass) {
+		const enclosingClass = this.currentClass;
+		this.currentClass = ClassType.CLASS;
+		this.declare(stmt.name);
+		this.define(stmt.name);
+		this.beginScope();
+		this.scopes.peek()['this'] = true;
+		stmt.methods.forEach(method => {
+			const fnType = method.name.lexeme === "init" ? FnType.INITIALIZER : FnType.METHOD;
+			this.resolveFunction(method, fnType);
+		});
+		this.endScope();
+		this.currentClass = enclosingClass;
+	}
+
 	visitContinueStmt(stmt: StmtContinue) {};
 	visitErrorStmt(stmt: StmtError) {};
 
@@ -85,7 +113,12 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 			JLOX.error(stmt.keyword, message);
 		}
 		if (stmt.value !== null)
-			this.resolve(stmt.value);
+			if (this.currentFn === FnType.INITIALIZER) {
+				const { JLOX } = require('./jlox');
+				const message = "Can't return a value from class initializer!";
+				JLOX.error(stmt.keyword, message);	
+			}
+			this.resolve(stmt.value!);
 	}
 
 	visitVarStmt(stmt: StmtVar) {
@@ -118,6 +151,10 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
 	visitErrorExpr(expr: ExprError) {}
 
+	visitGetExpr(expr: ExprGet) {
+		this.resolve(expr.obj);
+	}
+
 	visitGroupingExpr(expr: ExprGrouping) {
 		this.resolve(expr.expression);
 	}
@@ -133,10 +170,25 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 		this.resolve(expr.right);
 	}
 
+	visitSetExpr(expr: ExprSet) {
+		this.resolve(expr.value);
+		this.resolve(expr.obj);
+	}
+
 	visitTernaryExpr(expr: ExprTernary) {
 		this.resolve(expr.condition);
 		this.resolve(expr.resTrue);
 		this.resolve(expr.resFalse);
+	}
+
+	visitThisExpr(expr: ExprThis) {
+		if (this.currentClass === ClassType.NONE) {
+			const { JLOX } = require('./jlox');
+			const message = "Can't use 'this' outside of a class!";
+			JLOX.error(expr.keyword, message);
+			return;
+		}
+		this.resolveLocal(expr, expr.keyword);
 	}
 
 	visitUnaryExpr(expr: ExprUnary) {

@@ -5,11 +5,14 @@ import {
 , ExprAssign
 , ExprBinary
 , ExprCall
+, ExprGet
 , ExprGrouping
 , ExprLambda
 , ExprLiteral
 , ExprLogical
+, ExprSet
 , ExprTernary
+, ExprThis
 , ExprUnary
 , ExprVariable
 } from '@/ast/Expr';
@@ -19,6 +22,7 @@ import {
 , StmtVisitor
 , StmtBlock
 , StmtBreak
+, StmtClass
 , StmtContinue
 , StmtIf
 , StmtExpression
@@ -28,7 +32,13 @@ import {
 , StmtVar
 , StmtWhile
 } from '@/ast/Stmt';
-import { LoxCallable, LoxFunction, instanceofLoxCallable } from "@/lox_callable";
+import {
+	LoxCallable
+,	LoxClass
+,	LoxFunction
+,	LoxInstance
+,	instanceofLoxCallable
+} from "@/lox_callable";
 import { Literal, TokenType } from '@/token_type';
 import { Token } from '@/token';
 import { Environment } from '@/environment';
@@ -89,6 +99,19 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		--this.inStmt;
 	}
 
+	visitClassStmt(statement: StmtClass) {
+		++this.inStmt;
+		this.environment.define(statement.name.lexeme, null, true);
+		const methods: Map<string, LoxFunction> = new Map();
+		statement.methods.forEach(method => {
+			const fn = new LoxFunction(method, this.environment, method.name.lexeme === "init");
+			methods.set(method.name.lexeme, fn);
+		})
+		const cls = new LoxClass(statement.name.lexeme, methods);
+		this.environment.assign(statement.name, cls);
+		--this.inStmt;
+	}
+
 	visitExpressionStmt(statement: StmtExpression) {
 		++this.inStmt;
 		const value = this.evaluate(statement.expression)
@@ -100,7 +123,7 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 
 	visitFunctionStmt(statement: StmtFunction) {
 		++this.inStmt;
-		const fn = new LoxFunction(statement, this.environment);
+		const fn = new LoxFunction(statement, this.environment, false);
 		this.environment.define(statement.name.lexeme, fn, true);
 		--this.inStmt;
 	}
@@ -248,6 +271,15 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		return fn.call(this, args);
 	}
 
+	visitGetExpr(expr: ExprGet): Literal {
+		const obj = this.evaluate(expr.obj);
+		if (obj instanceof LoxInstance) {
+			return (obj as LoxInstance).get(expr.name);
+		}
+
+		throw new RuntimeError(expr.name, "Only instances have properties");
+	}
+
 	visitGroupingExpr(expr: ExprGrouping): Literal {
 		return this.evaluate(expr.expression);
 	}
@@ -260,7 +292,8 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 				expr.params,
 				expr.body
 			),
-			this.environment
+			this.environment,
+			false
 		);
 		this.environment.define(name, fn, true);
 		return fn;
@@ -280,6 +313,17 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		return this.evaluate(expr.right);
 	}
 
+	visitSetExpr(expr: ExprSet): Literal {
+		const obj = this.evaluate(expr.obj);
+		if (!(obj instanceof LoxInstance)) {
+			throw new RuntimeError(expr.name, "Only instances have fields")
+		}
+
+		const value = this.evaluate(expr.value);
+		(obj as LoxInstance).set(expr.name, value);
+		return value;
+	}
+
 	visitTernaryExpr(expr: ExprTernary): Literal {
 		const condition = this.evaluate(expr.condition);
 		if (this.isTruthy(condition)) {
@@ -287,6 +331,10 @@ class Interpreter implements ExprVisitor<Literal>, StmtVisitor<void> {
 		} else {
 			return this.evaluate(expr.resFalse)
 		}
+	}
+
+	visitThisExpr(expr: ExprThis): Literal {
+		return this.lookUpVariable(expr.keyword, expr)
 	}
 
 	visitUnaryExpr(expr: ExprUnary): Literal {
