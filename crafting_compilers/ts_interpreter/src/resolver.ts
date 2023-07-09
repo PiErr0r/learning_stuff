@@ -112,13 +112,14 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 			const message = "Can't return from top-level code!";
 			JLOX.error(stmt.keyword, message);
 		}
-		if (stmt.value !== null)
+		if (stmt.value !== null) {
 			if (this.currentFn === FnType.INITIALIZER) {
 				const { JLOX } = require('./jlox');
 				const message = "Can't return a value from class initializer!";
 				JLOX.error(stmt.keyword, message);	
 			}
-			this.resolve(stmt.value!);
+			this.resolve(stmt.value);
+		}
 	}
 
 	visitVarStmt(stmt: StmtVar) {
@@ -196,7 +197,7 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 	}
 
 	visitVariableExpr(expr: ExprVariable) {
-		if (!this.scopes.empty() && !this.scopes.peek()[expr.name.lexeme]) {
+		if (!this.scopes.empty() && this.scopes.peek()[expr.name.lexeme] === false) {
 			const { JLOX } = require('./jlox');
 			const message = "Can't read local variable in its own initializer!";
 			JLOX.error(expr.name, message);
