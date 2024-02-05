@@ -1,0 +1,5 @@
+#!/bin/bash
+
+curl localhost:8000/recipes -X POST -H 'Content-Type: application/json' -d '{"name":"test","ingredients":[{"name":"asd"},{"name":"dsa"}]}'
+
+curl localhost:8000/recipes -X POST -H 'Content-Type: application/json' -d '{"name":"test2","ingredients":[{"name":"salt"},{"name":"pepper"}]}'

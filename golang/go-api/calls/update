@@ -1,0 +1,5 @@
+#!/bin/bash
+
+curl localhost:8000/recipes/test -X PUT -H 'Content-Type: application/json' -d '{"name":"test","ingredients":[{"name":"white"},{"name":"black"}]}'
+
+curl localhost:8000/recipes/test2 -X PUT -H 'Content-Type: application/json' -d '{"name":"test2","ingredients":[{"name":"mayo"},{"name":"ketchup"}]}'

@@ -1,0 +1,7 @@
+curl localhost:8000/recipes/test
+
+echo
+
+curl localhost:8000/recipes/test2
+
+echo
