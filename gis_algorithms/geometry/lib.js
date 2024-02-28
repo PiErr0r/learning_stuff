@@ -1,6 +1,50 @@
 const { Point } = require('./point');
 const { radians } = require('./helpers');
 
+function pipCross(pt, pgon) {
+	const [x, y] = pt;
+	let crossing = 0;
+	let inFlag = false;
+	for (let i = 0; i < pgon.length - 1; ++i) {
+		const pt1 = pgon[i];
+		const pt2 = pgon[i + 1];
+		const y1 = pt1.y >= y;
+		const y2 = pt2.y >= y;
+		if (y1 !== y2) {
+			const x1 = pt1.x >= x;
+			const x2 = pt2.x >= x;
+			if (x1 === x2) {
+				if (x1) {
+					++crossing;
+					inFlag = !inFlag;
+				}
+			} else {
+				const m = pt2.x - (pt2.y - y) * (pt1.x - pt2.x) / (pt1.y - pt2.y);
+				if (m > x) {
+					++crossing;
+					inFlag = !inFlag;
+				}
+			}
+		}
+	}
+	return [inFlag, crossing];
+}
+
+function pipWn1(pt, pgon) {
+	const isLeft = (p, p1, p2) => (p2.x-p1.x)*(p.y-p1.y) - (p.x-p1.x)*(p2.y-p1.y);
+	let wn = 0;
+	for (let i = 0; i < pgon.length - 1; ++i) {
+		if (pgon[i].y < pt.y) {
+			if (pgon[i+1].y > pt.y && isLeft(pt, pgon[i], pgon[i + 1]) > 0)
+				++wn ;
+		} else {
+			if (pgon[i+1].y <= pt.y && isLeft(pt, pgon[i], pgon[i + 1]) < 0)
+				--wn;
+		}
+	}
+	return [wn !== 0, wn];
+}
+
 function testIntersect(s1, s2) {
 	let lsign = sideplr(s2.lp0, s1.lp0, s1.rp);
 	let rsign = sideplr(s2.rp, s1.lp0, s1.rp);
@@ -79,6 +123,8 @@ function spDist(lat1, lon1, lat2, lon2, R = 6371 /* km */) {
 }
 
 module.exports = {
+	pipCross,
+	pipWn1,
 	testIntersect,
 	getIntersectionPoint,
 	point2line,

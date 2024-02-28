@@ -2,11 +2,13 @@ const {
   Segment,
   Point,
   Polygon,
+  getIntersectionPoint,
+  pipCross,
+  pipWn1,
   point2line,
   sideplr,
   spDist,
   testIntersect,
-  getIntersectionPoint,
 } = require('./geometry')
 {
   const a = new Point(1, 2);
@@ -70,4 +72,34 @@ const {
     console.log("NO")
   }
   console.log(s1.eq(s3))
+}
+{
+  const points = [ [0,10], [5,0], [10,10], [15,0], [20,10], [25,0], [30,20], [40,20], [45,0], [50,50], [40,40], [30,50], [25,20], [20,50], [15,10], [10,50], [8, 8], [4,50]]
+    .map(pt => new Point(...pt));
+  const ppgon = new Polygon(...points);
+  // console.log(ppgon)
+  const inout = (pip) => (pip ? "IN" : "OUT");
+  let point = new Point(10, 30)
+  console.log(`Point ${point} is ${inout(pipCross(point, ppgon)[0])}`);
+  point = new Point(10, 20)
+  console.log(`Point ${point} is ${inout(pipCross(point, ppgon)[0])}`);
+  point = new Point(20, 40)
+  console.log(`Point ${point} is ${inout(pipCross(point, ppgon)[0])}`);
+  point = new Point(5, 40)
+  console.log(`Point ${point} is ${inout(pipCross(point, ppgon)[0])}`);
+}
+{
+  const points = [ [0,10], [5,0], [10,10], [15,0], [20,10], [25,0], [30,20], [40,20], [45,0], [50,50], [40,40], [30,50], [25,20], [20,50], [15,10], [10,50], [8, 8], [4,50]]
+    .map(pt => new Point(...pt));
+  const ppgon = new Polygon(...points);
+  // console.log(ppgon)
+  const inout = (pip) => (pip ? "IN" : "OUT");
+  let point = new Point(10, 30)
+  console.log(`Point ${point} is ${inout(pipWn1(point, ppgon)[0])}`);
+  point = new Point(10, 20)
+  console.log(`Point ${point} is ${inout(pipWn1(point, ppgon)[0])}`);
+  point = new Point(20, 40)
+  console.log(`Point ${point} is ${inout(pipWn1(point, ppgon)[0])}`);
+  point = new Point(5, 40)
+  console.log(`Point ${point} is ${inout(pipWn1(point, ppgon)[0])}`);
 }
