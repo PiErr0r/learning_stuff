@@ -8,12 +8,12 @@ int main(int argc, const char* argv[]) {
 
 	int constant1 = addConstant(&chunk, 1.2);
 	int constant2 = addConstant(&chunk, 1.8);
-	writeChunk(&chunk, OP_CONSTANT);
-	writeChunk(&chunk, constant1);
-	writeChunk(&chunk, OP_CONSTANT);
-	writeChunk(&chunk, constant2);
+	writeChunk(&chunk, OP_CONSTANT, 123);
+	writeChunk(&chunk, constant1, 123);
+	writeChunk(&chunk, OP_CONSTANT, 123);
+	writeChunk(&chunk, constant2, 123);
 
-	writeChunk(&chunk, OP_RETURN);
+	writeChunk(&chunk, OP_RETURN, 124);
 
 	disassembleChunk(&chunk, "test chunk");
 	freeChunk(&chunk);
