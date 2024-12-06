@@ -1,21 +1,39 @@
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
+#include "vm.h"
+
+// implement https://en.wikipedia.org/wiki/Run-length_encoding for line counting
 
 int main(int argc, const char* argv[]) {
+	initVM();
 	Chunk chunk;
 	initChunk(&chunk);
 
-	int constant1 = addConstant(&chunk, 1.2);
-	int constant2 = addConstant(&chunk, 1.8);
+	int constant = addConstant(&chunk, 1.2);
 	writeChunk(&chunk, OP_CONSTANT, 123);
-	writeChunk(&chunk, constant1, 123);
+	writeChunk(&chunk, constant, 123);
+
+	constant = addConstant(&chunk, 3.4);
 	writeChunk(&chunk, OP_CONSTANT, 123);
-	writeChunk(&chunk, constant2, 123);
+	writeChunk(&chunk, constant, 123);
+
+	writeChunk(&chunk, OP_ADD, 123);
+
+	constant = addConstant(&chunk, 5.6);
+	writeChunk(&chunk, OP_CONSTANT, 123);
+	writeChunk(&chunk, constant, 123);
+
+	writeChunk(&chunk, OP_DIVIDE, 123);
+
+	writeChunk(&chunk, OP_NEGATE, 123);
 
 	writeChunk(&chunk, OP_RETURN, 124);
 
-	disassembleChunk(&chunk, "test chunk");
+	// disassembleChunk(&chunk, "test chunk");
+
+	interpret(&chunk);
+	freeVM();
 	freeChunk(&chunk);
 	return 0;
 }
