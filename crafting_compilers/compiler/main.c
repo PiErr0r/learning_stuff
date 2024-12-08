@@ -67,7 +67,7 @@ int main(int argc, const char* argv[]) {
 		runFile(argv[1]);
 	} else {
 		fprintf(stderr, "Usage: %s [path]\n", argv[0]);
-		exit(64)
+		exit(64);
 	}
 
 	freeVM();
