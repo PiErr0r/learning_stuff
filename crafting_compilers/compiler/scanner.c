@@ -64,7 +64,7 @@ static char peekNext() {
 static void skipWhitespace() {
 	for (;;) {
 		char c = peek();
-		switch(c) {
+		switch (c) {
 			case ' ':
 			case '\r':
 			case '\t':
@@ -130,13 +130,13 @@ static TokenType checkKeyword(int start, int length, const char* rest, TokenType
 
 static TokenType identifierType() {
 	
-	switch(scanner.start[0]) {
+	switch (scanner.start[0]) {
 		case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
 		case 'c': return checkKeyword(1, 4, "lass", TOKEN_CLASS);
 		case 'e': return checkKeyword(1, 3, "lse", TOKEN_ELSE);
 		case 'f': {
 			if (scanner.current - scanner.start > 1) {
-				switch(scanner.start[1]) {
+				switch (scanner.start[1]) {
 					case 'a': return checkKeyword(2, 3, "lse", TOKEN_FALSE);
 					case 'o': return checkKeyword(2, 1, "r", TOKEN_FOR);
 					case 'u': return checkKeyword(2, 1, "n", TOKEN_FUN);
@@ -151,7 +151,7 @@ static TokenType identifierType() {
 		case 's': return checkKeyword(1, 4, "uper", TOKEN_SUPER);
 		case 't': {
 			if (scanner.current - scanner.start > 1) {
-				switch(scanner.start[1]) {
+				switch (scanner.start[1]) {
 					case 'h': return checkKeyword(2, 2, "is", TOKEN_THIS);
 					case 'r': return checkKeyword(2, 2, "ue", TOKEN_TRUE);					
 				}
@@ -179,7 +179,7 @@ Token scanToken() {
 	if (isAlpha(c)) return identifier();
 	if (isDigit(c)) return number();
 
-	switch(c) {
+	switch (c) {
 		case '(': return makeToken(TOKEN_LEFT_PAREN);
 		case ')': return makeToken(TOKEN_RIGHT_PAREN);
 		case '{': return makeToken(TOKEN_LEFT_BRACE);
