@@ -53,7 +53,7 @@ static void concatenate() {
 	int length = a->length + b->length;
 	char* chars = ALLOCATE(char, length + 1);
 	memcpy(chars, a->chars, a->length);
-	memcpy(chats + a->length, b->chars, b->length);
+	memcpy(chars + a->length, b->chars, b->length);
 	chars[length] = '\0';
 
 	ObjString* result = takeString(chars, length);
@@ -63,10 +63,12 @@ static void concatenate() {
 void initVM() {
 	resetStack();
 	vm.objects = NULL;
+	initTable(&vm.strings);
 }
 
 void freeVM() {
 	freeObjects();
+	freeTable(&vm.strings);
 }
 
 static InterpretResult run() {
@@ -114,7 +116,7 @@ static InterpretResult run() {
 			case OP_LESS:			BINARY_OP(BOOL_VAL, <); break;
 			case OP_ADD: {
 				if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
-					concatenate()
+					concatenate();
 				} else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
 					double b = AS_NUMBER(pop());
 					double a = AS_NUMBER(pop());
