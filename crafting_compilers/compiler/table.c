@@ -110,10 +110,11 @@ ObjString* tableFindString(Table* table, const char* chars, int length, uint32_t
 	uint32_t index = hash % table->capacity;
 	for (;;) {
 		Entry* entry = &table->entries[index];
-		if (entry == NULL) {
+		if (entry->key == NULL) {
 			if (IS_NIL(entry->value)) return NULL;
 		} else if (entry->key->length == length && entry->key->hash == hash && memcmp(entry->key->chars, chars, length) == 0) {
 			return entry->key;
 		}
+		index = (index + 1) % table->capacity;
 	}
 }
