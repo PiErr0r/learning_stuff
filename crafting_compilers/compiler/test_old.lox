@@ -1,0 +1,19 @@
+{
+var breakfast = "beignets";
+var beverage = "cafe au lait";
+breakfast = "beignets with " + beverage;
+
+print breakfast;
+}
+
+var i = 0;
+var b = 11;
+while (i < b) {
+	i = (i + 1);
+}
+print i;
+
+for (var a = 0; a < 5; a = a + 1) {
+	print "a = ";
+	print a;
+}
