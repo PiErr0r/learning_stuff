@@ -1,13 +1,17 @@
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
+#include "chunk.h"
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
+#include "table.h"
+#include "value.h"
 #include "vm.h"
 
 VM vm;
@@ -85,6 +89,11 @@ static bool call(ObjClosure* closure, int argCount) {
 static bool callValue(Value callee, int argCount) {
 	if (IS_OBJ(callee)) {
 		switch (OBJ_TYPE(callee)) {
+			case OBJ_CLASS: {
+				ObjClass* klass = AS_CLASS(callee);
+				vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+				return true;
+			}
 			case OBJ_CLOSURE:
 				return call(AS_CLOSURE(callee), argCount);
 			case OBJ_NATIVE: {
@@ -261,6 +270,37 @@ static InterpretResult run() {
 				*frame->closure->upvalues[slot]->location = peek(0);
 				break;
 			}
+			case OP_GET_PROPERTY: {
+				if (!IS_INSTANCE(peek(0))) {
+					runtimeError("Only instances have properties.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+				ObjInstance* instance = AS_INSTANCE(peek(0));
+				ObjString* name = READ_STRING();
+
+				Value value;
+				if (tableGet(&instance->fields, name, &value)) {
+					pop(); // instance
+					push(value);
+					break;
+				}
+
+				runtimeError("Undefined property '%s'.", name->chars);
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			case OP_SET_PROPERTY: {
+				if (!IS_INSTANCE(peek(1))) {
+					runtimeError("Only instances have properties.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				ObjInstance* instance = AS_INSTANCE(peek(1));
+				tableSet(&instance->fields, READ_STRING(), peek(0));
+				Value value = pop();
+				pop();
+				push(value);
+				break;
+			}
 			case OP_EQUAL: {
 				Value b = pop();
 				Value a = pop();
@@ -356,6 +396,9 @@ static InterpretResult run() {
 				frame = &vm.frames[vm.frameCount - 1];
 				break;
 			}
+			case OP_CLASS:
+				push(OBJ_VAL(newClass(READ_STRING())));
+				break;
 		}
 	}
 
