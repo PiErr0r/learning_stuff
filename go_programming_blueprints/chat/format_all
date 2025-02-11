@@ -1,0 +1,1 @@
+gofmt -d -s -e .
